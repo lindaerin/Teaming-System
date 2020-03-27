@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block title %}White Board Home{% endblock %}
+{% block nav %}
+<a href="{{ url_for('post') }}"><i class="fas fa-post"></i>Post</a>
+{% endblock %}
+{% block content %}
+
+<h1>This is home page</h1>
+{% for foo in post %}
+   <ul style="list-style: none;">
+        <li>
+            <div class="post-group" style="width: 500px; margin: auto;">
+                <p><a href="">{{ foo['post_title'] }}</a></p>
+                <P>{{ foo['post_content'] }}</P>
+                <div style="margin: auto;">
+                    <span class="post-time" style="margin:0 60px;"><a href=""> Author: {{ foo['user_name'] }}</a></span>
+                    <span class="post-time"> Posted Time: {{ foo['post_time'] }}</span>
+                </div>
+            </div>
+        </li>
+   </ul>
+{% endfor %}
+{% endblock %}
