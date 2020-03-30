@@ -17,10 +17,10 @@
 	<body class>
 		<nav class="navtop">
 			<div>
-				<h1>White Board</h1>
+				<h1>WhiteBoard</h1>
 				{% if account %}
 					<a href="/"><i class="fas fa-home"></i>Home</a>
-					<a href="{{ url_for('profile') }}">User: {{ account['user_name'] }}</a>
+					<a href="{{ url_for('profile') }}">User: {{ account.user_name }}</a>
 					{% block nav %}{% endblock %}
 					<a href="{{ url_for('logout') }}"><i class="fas fa-sign"></i>Logout</a>
 				{% else %}
