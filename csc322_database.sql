@@ -7,6 +7,9 @@ CREATE TABLE tb_user (
 	user_id INT AUTO_INCREMENT,
     user_name VARCHAR(50) NOT NULL,
     user_password VARCHAR(50) NOT NULL ,
+    user_type varchar (50) default 'Ordinary', 
+    user_scores INT default 0, 
+	user_status bit default 1, 
 	email VARCHAR(100) NOT NULL ,
 	PRIMARY KEY (user_id)
 	);
@@ -24,8 +27,8 @@ insert into tb_user (user_name, user_password,  email) values
 -- create table profile
 create table tb_profile (
 	user_id INT auto_increment,
-    profile_display_name varchar (50),
-    profile_user_type varchar (50),       -- 3 tpyes of users ordinary user, VIP, Super User 
+    -- profile_display_name varchar (50),
+    profile_user_type varchar (50) default 'Ordinary',       -- 3 tpyes of users ordinary user, VIP, Super User 
     proflie_user_scores INT default 0,    -- user scores  default 0
     profile_user_status bit default 1,    -- only 0 or 1;  1 means good standing, 0 means have been banned(into black list) 
     primary key (user_id)
@@ -35,12 +38,6 @@ create table tb_profile (
 ALTER TABLE tb_profile AUTO_INCREMENT = 100;
 
 -- insert test data for profile
-insert into tb_profile (profile_display_name, profile_user_type) values 
-('AAA', 'OU'),
-('BBB', 'OU'),
-('CCC', 'VIP'),
-('DDD', 'SU');
-
     
 -- create table post
 create table tb_post (
@@ -75,7 +72,11 @@ ALTER TABLE tb_reply AUTO_INCREMENT = 500;
 create table tb_team (
 	team_id int auto_increment,
     team_name varchar(100),
-    primary key (team_id)
+    user_id int,
+    user_name varchar(50),
+    primary key (team_id),
+    foreign key (user_id) references tb_user (user_id)
+    -- foreign key (user_name) references tb_user (user_name)
 	);
 -- team id start from 1000    
 ALTER TABLE tb_team AUTO_INCREMENT = 1000;  

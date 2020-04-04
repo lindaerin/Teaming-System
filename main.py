@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
@@ -63,6 +63,7 @@ def into_reply(post_id):
 def add_reply():
     reply_content = request.form['reply_content']
     if not reply_content:
+        flash('Please fill out the form!')
         return redirect(url_for('into_reply', post_id=session['post_id']))
     else:
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -145,7 +146,6 @@ def register():
 @app.context_processor
 def my_context_processor():
     user_id = session.get('user_id')
-    print('user_id', user_id)
     if user_id:
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM tb_user WHERE user_id = %s', (user_id,))
@@ -165,8 +165,12 @@ def profile():
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM tb_user WHERE user_id = %s', [session['user_id']])
         account = cursor.fetchone()
+        cursor.execute('SELECT post_title, post_content, post_time, user_name, post_id, user_id'
+                       ' FROM tb_post WHERE user_id = %s order by -post_time', [session['user_id']])
+        # Fetch all records and return result
+        post = cursor.fetchall()
         # Show the profile page with account info
-        return render_template('profile.html', account=account)
+        return render_template('profile.html', account=account, post=post)
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
@@ -178,7 +182,10 @@ def poster_profile(poster_id):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute('SELECT * FROM tb_user WHERE user_id = %s', (poster_id,))
     account = cursor.fetchone()
-    return render_template('profile.html', poster_account=account)
+    cursor.execute('SELECT post_title, post_content, post_time, user_name, post_id, user_id'
+                   ' FROM tb_post WHERE user_id = %s order by -post_time', (poster_id,))
+    post = cursor.fetchall()
+    return render_template('profile.html', poster_account=account, post=post)
 
 
 
@@ -224,6 +231,22 @@ def post():
         msg = 'Please fill out the form!'
         # Show registration form with message (if any)
     return render_template('post.html', msg=msg)
+
+
+# search bar
+@app.route('/search/', methods=['GET', 'POST'])
+@login_required
+def search():
+    if request.method == "POST" and 'username' in request.form:
+        username = request.form['username']
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        # search by username
+        cursor.execute('SELECT * FROM tb_post WHERE user_name = %s', (username,))
+        account = cursor.fetchone()
+        if account:
+            return redirect(url_for('poster_profile', poster_id=account['user_id']))
+    flash('User does not exist')
+    return redirect(url_for('home'))
 
 
 if __name__ == '__main__':
