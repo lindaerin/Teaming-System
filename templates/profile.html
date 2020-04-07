@@ -5,9 +5,25 @@
     {% endblock %}
 
 {% block content %}
+    <div class="show-message" style="text-align: center; width: 360px; margin:0 auto;">
+         {% with messages = get_flashed_messages() %}
+         {% if messages %}
+         {% for message in messages %}
+         <div class="alert alert-warning alert-dismissible" role="alert">
+             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                 <span aria-hidden="true">×</span></button>
+                 {{message}}
+         </div>
+         {% endfor %}
+         {% endif %}
+         {% endwith %}
+    </div>
+
     <div class="content">
-        <h2>User Profile</h2>
+
+    <h2>User Profile</h2>
     {% if poster_account %}
+
         <table>
             <tr>
                 <td>User Name:</td>
@@ -46,6 +62,57 @@
                 <td>{{ account.email }}</td>
             </tr>
         </table>
+        <hr>
+        <h4 style="color: #4a536e; font-size: 22px;">My Group</h4>
+        {% if group_info %}
+            {% for name in group_info %}
+                 <a href="{{ url_for('into_group', group_id=name.group_id) }}">
+                <button class="btn btn-primary" style="font-size: 15px; width: 200px;
+                 margin:10px 20px; word-break: break-all; height: 100px; ">
+                        {{ name.group_name }}
+                </button></a>
+            {% endfor %}
+        {% endif %}
+        <hr>
+
+        <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+            Create a Group</button>
+        <form action="{{ url_for('create_group') }}" method="post">
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                 aria-hidden="true">
+            <div class="modal-dialog">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="myModalLabel" style="margin: 0 auto;">Create a Group</h4>
+                    </div>
+                    <div class="modal-body">
+
+                        <div class="form-group" style="box-sizing: border-box;">
+                            <input type="text" name="group_name" placeholder="Enter Group Name" required
+                                   class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <textarea name="content"  rows="7" placeholder="Enter Group Description Here..."
+                                    required  class="form-control"></textarea>
+                            </div>
+                    </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default"
+                                        data-dismiss="modal">Close
+                                </button>
+
+                                <button type="submit" class="btn btn-primary">
+                                    Create
+                                </button>
+                            </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal-dialog -->
+            </div><!-- /.modal -->
+        </form>
+
+
+
     {% endif %}
          <h2>Post History</h2>
         <div class="main" style="padding: 0; background-color: #e2e1e8; margin: 0">

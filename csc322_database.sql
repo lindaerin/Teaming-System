@@ -69,15 +69,17 @@ create table tb_reply (
 ALTER TABLE tb_reply AUTO_INCREMENT = 500;
 
 -- create table team 
-create table tb_team (
-	team_id int auto_increment,
-    team_name varchar(100),
+create table tb_group (
+	group_id int auto_increment,
+    group_name varchar(50),
+    group_content text,
+    group_created_time timestamp default current_timestamp,
     user_id int,
     user_name varchar(50),
-    primary key (team_id),
+    primary key (group_id),
     foreign key (user_id) references tb_user (user_id)
     -- foreign key (user_name) references tb_user (user_name)
 	);
 -- team id start from 1000    
-ALTER TABLE tb_team AUTO_INCREMENT = 1000;  
+ALTER TABLE tb_group AUTO_INCREMENT = 1000;  
 

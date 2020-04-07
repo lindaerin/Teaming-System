@@ -169,8 +169,10 @@ def profile():
                        ' FROM tb_post WHERE user_id = %s order by -post_time', [session['user_id']])
         # Fetch all records and return result
         post = cursor.fetchall()
+        cursor.execute('SELECT * FROM tb_group WHERE user_id = %s ', (session['user_id'],))
+        group_info = cursor.fetchall()
         # Show the profile page with account info
-        return render_template('profile.html', account=account, post=post)
+        return render_template('profile.html', account=account, post=post, group_info=group_info)
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
@@ -182,21 +184,20 @@ def poster_profile(poster_id):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute('SELECT * FROM tb_user WHERE user_id = %s', (poster_id,))
     account = cursor.fetchone()
+    session['poster_id'] = poster_id
+    if session['user_id'] == account['user_id']:
+        print("same")
+        return redirect(url_for('profile'))
     cursor.execute('SELECT post_title, post_content, post_time, user_name, post_id, user_id'
                    ' FROM tb_post WHERE user_id = %s order by -post_time', (poster_id,))
     post = cursor.fetchall()
     return render_template('profile.html', poster_account=account, post=post)
 
 
-
 # http://localhost:5000/python/logout - this will be the logout page
 @app.route('/logout/')
 def logout():
-    # Remove session data, this will log the user out
-    # session.pop('loggedin', None)
     session.pop('user_id', None)
-    # session.pop('username', None)
-    # Redirect to login page
     return redirect(url_for('login'))
 
 
@@ -216,10 +217,7 @@ def post():
         # If account exists show error and validation checks
         if post:
             msg = 'Error: Title already exists!\n'
-        elif not title or not content:
-            msg = 'Error: Please fill out the form!\n'
         else:
-            msg = 'You have successfully posted!'
             # Account doesnt exists and the form data is valid, now insert new account into accounts table
             cursor.execute("INSERT INTO tb_post (post_title, post_content, user_id, user_name)"
                            " VALUES (%s, %s, %s, %s)", (title, content, session['user_id'], session['username']))
@@ -241,12 +239,43 @@ def search():
         username = request.form['username']
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         # search by username
-        cursor.execute('SELECT * FROM tb_post WHERE user_name = %s', (username,))
+        cursor.execute('SELECT * FROM tb_user WHERE user_name = %s', (username,))
         account = cursor.fetchone()
-        if account:
+        if not account:
+            flash('User does not exist')
+            return redirect(url_for('home'))
+        elif account['user_name'] == session['username']:
+            return redirect(url_for('profile'))
+        else:
             return redirect(url_for('poster_profile', poster_id=account['user_id']))
-    flash('User does not exist')
-    return redirect(url_for('home'))
+
+
+# create a group
+@app.route('/group/', methods=['GET', 'POST'])
+def create_group():
+    if request.method == "POST":
+        group_name = request.form['group_name']
+        group_describe = request.form['content']
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM tb_group WHERE group_name = %s', (group_name,))
+        group_name_exist = cursor.fetchone()
+        print('group info', group_name_exist)
+        if group_name_exist:
+            flash('Group Already Exist')
+            return redirect(url_for('profile'))
+        cursor.execute('INSERT INTO tb_group (group_name, user_id, user_name, group_content) VALUES (%s, %s, %s, %s)',
+                       (group_name, session['user_id'], session['username'], group_describe))
+        mysql.connection.commit()
+        return redirect(url_for('profile'))
+
+
+# group page
+@app.route("/into_group/<group_id>")
+def into_group(group_id):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT * FROM tb_group WHERE group_id = %s', (group_id,))
+    group = cursor.fetchone()
+    return render_template('group.html', group=group)
 
 
 if __name__ == '__main__':

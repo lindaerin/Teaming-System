@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% block title %}WhiteBoard Group Page{% endblock %}
+    {% block nav %}
+    <a href="{{ url_for('post') }}"><i class="fas fa-post"></i>Post</a>
+    {% endblock %}
+{% block content %}
+<div class="content">
+	<h2>Group Page</h2>
+        <table>
+            <tr>
+                <td>Group Name:</td>
+                <td>{{ group.group_name }}</td>
+            </tr>
+            <tr>
+                <td>Group Created By:</td>
+                <td>{{ group.user_name }}</td>
+            </tr>
+            <tr>
+                <td>Group Created Time:</td>
+                <td>{{ group.group_created_time }}</td>
+            </tr>
+        </table>
+</div>
+{% endblock %}
+
