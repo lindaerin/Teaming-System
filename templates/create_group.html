@@ -1,0 +1,47 @@
+{% extends 'layout.html' %}
+{% block title %} Whiteboard {% endblock %}>
+
+{%block content%}
+
+    <h2 class="page-title">Create Group</h2>
+
+{% if msg %}
+    <div class="alert alert-danger" role="alert">
+      <strong>{{msg}}</strong>
+    </div>
+
+{% endif %}
+    <form action = "{{ url_for('create_group') }}" method="post" autocomplete="on">
+
+        <div class="form-horizontal">
+            <div class="form-group">
+                <label for="team_name">Team Name</label>
+                <input type ="text" name = "team_name" value="{{team_name}}" id="team_name" placeholder="Enter Team Name" class ="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="invite">Add Members</label>
+                <input type ="text" data-role="tagsinput" name = "invite" value="{{invite}}" id="invite" placeholder="Add Team Members" class="form-control">
+            </div>
+
+            <div class ="form-group">
+                <label>Project Description</label>
+                <textarea name="content" id="team_desc" value="{{content}} " rows="10" placeholder="Enter Project Description" class="form-control">
+                </textarea>
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-primary btn-block">Create Group</button>
+            </div>
+
+        </div>
+
+    </form>
+
+
+    <script>
+
+    </script>
+
+
+{% endblock %}

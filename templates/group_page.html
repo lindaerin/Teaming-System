@@ -1,0 +1,31 @@
+{% extends 'layout.html' %} #makes sure the nav
+{% block title %}WhiteBoard Home{% endblock %}
+{% block nav %}
+<a href="{{ url_for('post') }}"><i class="fas fa-post"></i>Post</a>
+{% endblock %}
+
+{% block content %}
+
+<h1 class="heading-title"> Group Page of {{group_name}}</h1>
+
+<div class="main">
+    <p class="info"><b>Group Members:</b> {{ members }}</p>
+    <p class="info"><b>Description:</b> {{ team_desc}}</p>
+{% for ps in post %}
+   <ul>
+        <li>
+            <div class="post-group">
+                <p class="post-title"><a href="{{ url_for('into_reply', post_id=ps.post_id) }}">
+                    {{ ps.post_title }}</a></p>
+                <P class="post-content">{{ ps.post_content }}</P>
+                <div class="post-info">
+                    <span class="post-author"><a href="{{ url_for('poster_profile', poster_id=ps.user_id) }}">
+                        {{ ps.user_name }}</a></span>
+                    <span class="post-time">{{ ps.post_time }}</span>
+                </div>
+            </div>
+        </li>
+   </ul>
+{% endfor %}
+</div>
+{% endblock %}
