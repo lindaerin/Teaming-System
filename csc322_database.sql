@@ -6,7 +6,10 @@ use CSC322_PROJECT;
 CREATE TABLE tb_user ( 
 	user_id INT AUTO_INCREMENT,
     user_name VARCHAR(50) NOT NULL,
-    user_password VARCHAR(50) NOT NULL ,
+    user_password VARCHAR(50) NOT NULL,
+    user_type varchar (50) default 'Ordinary', 
+    user_scores INT default 0, 
+	user_status bit default 1, 
 	email VARCHAR(100) NOT NULL ,
 	PRIMARY KEY (user_id)
 	);
@@ -76,6 +79,7 @@ create table tb_team (
 	team_id int auto_increment,
     team_name varchar(100) UNIQUE NOT NULL,
     team_content varchar(100) NOT NULL,
+    time_creation timestamp default current_timestamp,
     primary key (team_id)
 	);
 -- team id start from 1000    

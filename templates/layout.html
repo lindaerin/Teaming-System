@@ -19,24 +19,83 @@
 		<script src="{{url_for('static', filename='jquery-ui.min.js')}}"></script>
 		<script src="{{url_for('static', filename='bootstrap-tagsinput.min.js')}}"></script>
 		<script src="{{url_for('static', filename='bootstrap-tagsinput.js')}}"></script>
+
+<!--		<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>-->
+<!--	    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>-->
+<!--        <script>-->
+<!--            $('#flash-overlay-modal').modal();-->
+<!--        </script>-->
 	</head>
 	<body class>
 		<nav class="navtop">
 			<div>
 				<h1>WhiteBoard</h1>
 				{% if account %}
+					<form action="{{ url_for('search') }}" method="post" class="active" style="padding: 15px;">
+						<input type="text" placeholder="Search User Name" name="username">
+						<button type="submit"><i class="fa fa-search"></i></button>
+					</form>
 					<a href="/"><i class="fas fa-home"></i>Home</a>
 					<a href="{{ url_for('profile') }}">User: {{ account.user_name }}</a>
-					<a href="{{ url_for('create_group')}}">Create Group</a>
+					<a data-toggle="modal" data-target="#myModal">Create Group</a>
 					{% block nav %}{% endblock %}
 					<a href="{{ url_for('logout') }}"><i class="fas fa-sign"></i>Logout</a>
 				{% else %}
+					<form action="{{ url_for('search') }}" method="post" class="active" style="padding: 15px;">
+						<input type="text" placeholder="Search User Name" name="username">
+						<button type="submit"><i class="fa fa-search"></i></button>
+					</form>
                 	<a href="/"><i class="fas fa-home"></i>Home</a>
 					<a href="{{ url_for('post') }}"><i class="fas fa-post"></i>Post</a>
 					<a href="{{ url_for('login') }}"><i class="fas fa-sign"></i>Login/Register</a>
 				{% endif %}
 			</div>
 		</nav>
+
+		<form action="{{ url_for('create_group') }}" method="post">
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                 aria-hidden="true">
+            <div class="modal-dialog">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="myModalLabel" style="margin: 0 auto;">Create a Group</h4>
+                    </div>
+                    <div class="modal-body">
+						{% if msg %}
+							<div class="alert alert-danger" role="alert">
+							  <strong>{{msg}}</strong>
+							</div>
+
+						{% endif %}
+
+                        <div class="form-group" style="box-sizing: border-box;">
+                            <input type="text" name="team_name" value="{{team_name}}" id="team_name"  placeholder="Enter Group Name" required
+                                   class="form-control">
+                        </div>
+
+						<div class="form-group">
+                            <input type="text" data-role="tagsinput" name="invite" value="{{invite}}" id="invite" placeholder="Add Team Members" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <textarea name="content"  rows="7" value="{{content}}" id="team_desc" placeholder="Enter Group Description Here..."
+                                    required  class="form-control"></textarea>
+                            </div>
+                    </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default"
+                                        data-dismiss="modal">Close
+                                </button>
+
+                                <button type="submit" class="btn btn-primary">
+                                    Create
+                                </button>
+                            </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal-dialog -->
+            </div><!-- /.modal -->
+        </form>
 		{% block content %}{% endblock %}
 	</body>
 </html>

@@ -5,31 +5,47 @@
     {% endblock %}
 
 {% block content %}
-    {% if poster_account %}
+    {% if public_profile %}
     <div class="content">
-        <h2>User Profile</h2>
+        <h2>{{ public_profile.user_name}}'s Profile</h2>
         <table>
             <tr>
                 <td>Username:</td>
-                <td>{{ poster_account.user_name }}</td>
+                <td>{{ public_profile.user_name }}</td>
+            </tr>
+            <tr>
+                <td>User Type:</td>
+                <td>{{ public_profile.user_type }}</td>
             </tr>
             <tr>
                 <td>Email:</td>
-                <td>{{ poster_account.email }}</td>
+                <td>{{ public_profile.email }}</td>
+            </tr>
+            <tr>
+                <td>Reputation:</td>
+                <td>{{ public_profile.user_scores }}</td>
             </tr>
         </table>
     </div>
     {% else %}
     <div class="content">
-        <h2>User Profile</h2>
+        <h2>My Profile</h2>
         <table>
             <tr>
                 <td>Username:</td>
                 <td>{{ account.user_name }}</td>
             </tr>
             <tr>
+                <td>User Type:</td>
+                <td>{{ account.user_type }}</td>
+            </tr>
+            <tr>
                 <td>Email:</td>
                 <td>{{ account.email }}</td>
+            </tr>
+            <tr>
+                <td>Reputation:</td>
+                <td>{{ account.user_scores }}</td>
             </tr>
         </table>
     </div>
@@ -47,6 +63,31 @@
             {% endfor %}
         {% endif %}
     </div>
+
+    <div class="content">
+            <h2>Post History</h2>
+        <div class="main" style="padding: 0; background-color: #e2e1e8; margin: 0">
+            {% if posts == () %}
+                <p>You do not have any posts history</p>
+            {% else %}
+                {% for post in posts %}
+                    <ul>
+                        <li>
+                            <div class="post-group">
+                                <p class="post-title"><a href="{{ url_for('into_reply', post_id=post.post_id) }}">
+                                    {{ post.post_title }}</a></p>
+                                <P class="post-content">{{ post.post_content }}</P>
+                                <div class="post-info">
+                                    <span class="post-author">{{ post.user_name }}</a></span>
+                                    <span class="post-time">{{ post.post_time }}</span>
+                                </div>
+                            </div>
+                        </li>
+                   </ul>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
     {% endif %}
 {% endblock %}
 

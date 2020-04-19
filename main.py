@@ -174,9 +174,11 @@ def profile():
         cursor.execute('select team_name, team_content from tb_team inner join group_members on tb_team.team_id = group_members.group_id where user_id = %s', ([session['user_id']],))
         group_info = cursor.fetchall()
 
+
         # if user doesn't have a team
-        if group_info is None:
+        if group_info is None or group_info == ():
             group_info = []
+
         # if user belongs in more one team or more
         if len(group_info) >= 1:
             temp = []
@@ -185,11 +187,17 @@ def profile():
             for i in range(0, len(group_info)):
                 temp.append(group_info[i]['team_name'])
 
-        group_info = temp
+            group_info = temp
+
+        # Get all post history of user if there exists any
+        cursor.execute('SELECT post_title, post_content, post_time, user_name, post_id, user_id'
+                       ' FROM tb_post WHERE user_id = %s order by -post_time', [session['user_id']])
+        # Fetch all records and return result
+        posts = cursor.fetchall()
 
 
         # Show the profile page with account info
-        return render_template('profile.html', account=account, group_info=group_info)
+        return render_template('profile.html', account=account, posts=posts, group_info=group_info)
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
@@ -202,6 +210,34 @@ def poster_profile(poster_id):
     cursor.execute('SELECT * FROM tb_user WHERE user_id = %s', (poster_id,))
     account = cursor.fetchone()
     return render_template('profile.html', poster_account=account)
+
+# search bar
+@app.route('/search/', methods=['GET', 'POST'])
+def search():
+    if request.method == "POST" and 'username' in request.form:
+        username = request.form['username']
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        # search by username
+        cursor.execute('SELECT * FROM tb_user WHERE user_name = %s', (username,))
+        account = cursor.fetchone()
+        print(account)
+        if not account:
+            flash('User does not exist')
+            return render_template('404.html')
+        elif account['user_name'] == session['username']:
+            return redirect(url_for('profile'))
+        else:
+            return redirect(url_for('public_profile', user_name=account['user_name']))
+
+# public user profile
+@app.route('/public/user/<user_name>')
+def public_profile(user_name):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT * FROM tb_user WHERE user_name = %s', (user_name,))
+    account = cursor.fetchone()
+    return render_template('profile.html', public_profile=account)
+
+
 
 
 # http://localhost:5000/python/logout - this will be the logout page
@@ -247,7 +283,7 @@ def post():
         # Show registration form with message (if any)
     return render_template('post.html', msg=msg)
 
-#
+
 @app.route('/create-group/', methods=['GET', 'POST'])
 @login_required
 def create_group():
@@ -273,7 +309,6 @@ def create_group():
             current_user = current['user_id']
             group_members = group_members + "," + str(current_user)
 
-
         if not team_name:
             msg='Please enter a group name'
             return render_template('create_group.html', msg=msg, team_name=team_name, invite=invite, content=team_desc)
@@ -285,8 +320,6 @@ def create_group():
         if not invite and not team_name:
             msg = 'Please fill out the form'
             return render_template('create_group.html', msg=msg)
-
-
 
         # cursor.execute('SELECT user_id from tb_user WHERE user_name = %s', (invite,))
         # invite_id = cursor.fetchone()
@@ -321,6 +354,7 @@ def create_group():
 
     return render_template('create_group.html')
 
+
 @app.route('/group/<group_name>', methods=['GET', 'POST'])
 def group_page(group_name):
     # check if group name exists within database
@@ -328,7 +362,6 @@ def group_page(group_name):
     cursor.execute('SELECT team_name from tb_team WHERE team_name = %s', (group_name,))
     groupExists = cursor.fetchone()
     # app.logger.info(groupExists)
-
 
     if groupExists:
         # get group_id
@@ -359,10 +392,10 @@ def group_page(group_name):
     else:
         return render_template('404.html')
 
+
 @app.errorhandler(404)
 def not_found(e):
     return render_template('404.html')
-
 
 
 if __name__ == '__main__':
