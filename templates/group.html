@@ -4,12 +4,17 @@
     <a href="{{ url_for('post') }}"><i class="fas fa-post"></i>Post</a>
     {% endblock %}
 {% block content %}
+
 <div class="content">
 	<h2>Group Page</h2>
         <table>
             <tr>
                 <td>Group Name:</td>
                 <td>{{ group.group_name }}</td>
+            </tr>
+            <tr>
+                <td>Group description:</td>
+                <td>{{ group.group_describe }}</td>
             </tr>
             <tr>
                 <td>Group Created By:</td>
@@ -20,6 +25,59 @@
                 <td>{{ group.group_created_time }}</td>
             </tr>
         </table>
+    <hr>
+ <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+            Invite</button>
+        <form action="{{ url_for('invite', group_id=group.group_id) }}" method="post">
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                 aria-hidden="true">
+            <div class="modal-dialog">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="myModalLabel" style="margin: 0 auto;">Invite user into the Group</h4>
+                    </div>
+                    <div class="modal-body">
+
+                        <div class="form-group" style="box-sizing: border-box;">
+                            <input type="text" name="user_name" placeholder="Enter the User Name" required
+                                   class="form-control">
+
+                        </div>
+                    </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default"
+                                        data-dismiss="modal">Close
+                                </button>
+                                <button type="submit" class="btn btn-primary"> submit</button>
+                            </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal-dialog -->
+            </div><!-- /.modal -->
+            <div class="show-message" style="text-align: center; width: 360px; margin:0 auto;">
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-warning alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">×</span></button>
+                    {{message}}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+        </form>
+    <h2>Group members</h2>
+    <table>
+            {% for name in group_members %}
+            <tr>
+                <td><a href="{{ url_for('poster_profile', poster_id=name.user_id) }}">
+                     <button class="btn btn-primary" style="font-size: 15px; width: 100px;
+                 margin:10px; word-break: break-all; height: 50px; ">{{ name.user_name }}</button></a></td>
+            </tr>
+            {% endfor %}
+    </table>
 </div>
 {% endblock %}
 

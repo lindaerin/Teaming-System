@@ -93,7 +93,7 @@
                                    class="form-control">
                         </div>
                         <div class="form-group">
-                            <textarea name="content"  rows="7" placeholder="Enter Group Description Here..."
+                            <textarea name="describe"  rows="7" placeholder="Enter Group Description Here..."
                                     required  class="form-control"></textarea>
                             </div>
                     </div>
@@ -116,7 +116,7 @@
     {% endif %}
          <h2>Post History</h2>
         <div class="main" style="padding: 0; background-color: #e2e1e8; margin: 0">
-    {% for ps in post %}
+    {% for ps in post_history %}
        <ul>
             <li>
                 <div class="post-group">

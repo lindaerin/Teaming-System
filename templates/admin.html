@@ -1,0 +1,51 @@
+{% extends 'layout.html' %}
+{% block title %}Administrator Site{% endblock %}
+
+
+{% block content %}
+
+<h2>These are users pending acceptance or rejection</h2>
+<div class="main">
+ <table>
+  <tr>
+    <th>User ID</th>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Interest</th> 
+    <th>Credential</th> 
+    <th>Reference</th>
+    <th>Accept</th>
+    <th>Reject</th>
+  </tr>
+
+{% for i in applied %}
+
+   <tr>
+    <td>{{i.user_id}}</td>
+    <td>{{i.username}}</td>
+    <td>{{i.email}}</td>
+    <td>{{i.interest}}</td>
+    <td>{{i.credential}}</td>
+    <td>{{i.reference}}</td>
+   
+    <td>
+    <form action="{{ url_for('admin') }}" method="Post">
+        <input type="hidden" name="user_id" value="{{i.user_id}}" />
+    	<input type="hidden" name="username" value="{{i.username}}" />
+    	<input type="hidden" name="email" value="{{i.email}}" />
+    	<input type="hidden" name="interest" value="{{i.interest}}" />
+    	<input type="hidden" name="credential" value="{{i.credential}}" />
+    <input type="submit" name= "Approve" value="Approve" />
+</form>
+    </td>
+
+    <td> <form action="{{ url_for('admin') }}" method="Post">
+    	<input type="hidden" name="user_id" value="{{i.user_id}}" />
+    <input type="submit" name="Reject" value="Reject" />
+</td>
+
+  </tr>
+{% endfor %}
+</table>
+</div>
+{% endblock %}

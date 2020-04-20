@@ -1,4 +1,3 @@
-
 body {
   	background-color: #435165;
   	margin: 0;
@@ -125,7 +124,7 @@ body.loggedin {
   	box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.1);
   	margin: 25px 0;
   	padding: 25px;
-	/* background-color: #fff; */
+	background-color: #fff;
 }
 .content > p table td, .content > div table td {
 	padding: 5px;
@@ -139,4 +138,3 @@ body.loggedin {
 	padding: 5px;
 	margin: 0 0 10px 0;
 }
-
