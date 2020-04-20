@@ -47,11 +47,13 @@ def admin():
             email = request.form['email']
             interest = request.form['interest']
             credential = request.form['credential']
+            # generate 10 str + digit password
             user_password = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(10)])
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute('SELECT * FROM tb_user WHERE email = %s', (email,))
             account = cursor.fetchone()
             if not account:
+                # insert data into table user: user_name, password, email, credential, interest
                 cursor.execute("INSERT INTO tb_user (user_name, user_password, email, credential, interest)"
                                " VALUES (%s, %s, %s, %s, %s)", (user_name, user_password, email, credential, interest))
             cursor.execute("DELETE FROM %s WHERE user_id = %s" % ('tb_applied', user_id))
@@ -93,6 +95,7 @@ def home():
 @login_required
 def into_reply(post_id):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    # get the post_id
     cursor.execute('SELECT * FROM tb_post WHERE post_id = %s', (post_id,))
     posted = cursor.fetchone()
     # join table reply and table user to get reply information
@@ -141,10 +144,16 @@ def login():
             session['loggedin'] = True
             session['user_id'] = account['user_id']
             session['username'] = account['user_name']
-            # session['password'] = account['user_password']
-            # Redirect to home page
+            # check if this is a new user
+            cursor.execute('SELECT * FROM tb_profile WHERE user_id = %s', [session['user_id']])
+            exist_user = cursor.fetchone()
+            # if this user already in table profile
+            if exist_user:
+                return redirect(url_for('profile'))
+            # otherwise, insert data into table profile: user_id, user_type, user_scores, user_status
             cursor.execute('INSERT INTO tb_profile (user_id) VALUES (%s)', [session['user_id']])
             mysql.connection.commit()
+            # into profile page
             return redirect(url_for('profile'))
         else:
             # Account doesnt exist or username/password incorrect

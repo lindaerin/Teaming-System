@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1d7000b2-73cd-419e-941d-d996a0705f9b" name="Default Changelist" comment="merged all of current features&#10;revised database and logic caused by database changed" />
+    <list default="true" id="1d7000b2-73cd-419e-941d-d996a0705f9b" name="Default Changelist" comment="merged all of current features&#10;revised database and logic caused by database changed">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -78,22 +81,22 @@
       <screen x="0" y="0" width="1368" height="872" />
     </state>
     <state x="289" y="3" key="CommitChangelistDialog2/0.0.1368.872@0.0.1368.872" timestamp="1587368750768" />
-    <state width="1348" height="227" key="GridCell.Tab.0.bottom" timestamp="1587368929833">
+    <state width="1348" height="227" key="GridCell.Tab.0.bottom" timestamp="1587409825667">
       <screen x="0" y="0" width="1368" height="872" />
     </state>
-    <state width="1348" height="227" key="GridCell.Tab.0.bottom/0.0.1368.872@0.0.1368.872" timestamp="1587368929833" />
-    <state width="1348" height="227" key="GridCell.Tab.0.center" timestamp="1587368929833">
+    <state width="1348" height="227" key="GridCell.Tab.0.bottom/0.0.1368.872@0.0.1368.872" timestamp="1587409825667" />
+    <state width="1348" height="227" key="GridCell.Tab.0.center" timestamp="1587409825666">
       <screen x="0" y="0" width="1368" height="872" />
     </state>
-    <state width="1348" height="227" key="GridCell.Tab.0.center/0.0.1368.872@0.0.1368.872" timestamp="1587368929833" />
-    <state width="1348" height="227" key="GridCell.Tab.0.left" timestamp="1587368929833">
+    <state width="1348" height="227" key="GridCell.Tab.0.center/0.0.1368.872@0.0.1368.872" timestamp="1587409825666" />
+    <state width="1348" height="227" key="GridCell.Tab.0.left" timestamp="1587409825666">
       <screen x="0" y="0" width="1368" height="872" />
     </state>
-    <state width="1348" height="227" key="GridCell.Tab.0.left/0.0.1368.872@0.0.1368.872" timestamp="1587368929833" />
-    <state width="1348" height="227" key="GridCell.Tab.0.right" timestamp="1587368929833">
+    <state width="1348" height="227" key="GridCell.Tab.0.left/0.0.1368.872@0.0.1368.872" timestamp="1587409825666" />
+    <state width="1348" height="227" key="GridCell.Tab.0.right" timestamp="1587409825666">
       <screen x="0" y="0" width="1368" height="872" />
     </state>
-    <state width="1348" height="227" key="GridCell.Tab.0.right/0.0.1368.872@0.0.1368.872" timestamp="1587368929833" />
+    <state width="1348" height="227" key="GridCell.Tab.0.right/0.0.1368.872@0.0.1368.872" timestamp="1587409825666" />
     <state x="482" y="349" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1587368753180">
       <screen x="0" y="0" width="1368" height="872" />
     </state>
