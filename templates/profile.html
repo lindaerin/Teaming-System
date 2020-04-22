@@ -21,32 +21,33 @@
 
     <div class="content">
 
-    <h2>User Profile</h2>
-    {% if poster_account %}
 
+    {% if public_profile %}
+    <h2>{{ public_profile.user_name }}'s Profile</h2>
         <table>
             <tr>
-                <td>User Name:</td>
-                <td>{{ poster_account.user_name }}</td>
+                <td><b>Username:</b></td>
+                <td>{{ public_profile.user_name }}</td>
             </tr>
             <tr>
-                <td>User Type:</td>
-                <td>{{ poster_account.user_type }}</td>
+                <td><b>User Type:</b></td>
+                <td>{{ public_profile.user_type }}</td>
             </tr>
             <tr>
-                <td>Scores:</td>
-                <td>{{ poster_account.user_scores }}</td>
+                <td><b>Reputation:</b></td>
+                <td>{{ public_profile.user_scores }}</td>
             </tr>
             <tr>
-                <td>Email:</td>
-                <td>{{ poster_account.email }}</td>
+                <td><b>Email:</b></td>
+                <td>{{ public_profile.email }}</td>
             </tr>
         </table>
 
     {% else %}
+        <h2>My Profile</h2>
         <table>
             <tr>
-                <td>User Name:</td>
+                <td>Username:</td>
                 <td>{{ account.user_name }}</td>
             </tr>
             <tr>
@@ -54,7 +55,7 @@
                 <td>{{ account.user_type }}</td>
             </tr>
             <tr>
-                <td>Scores:</td>
+                <td>Reputation:</td>
                 <td>{{ account.user_scores }}</td>
             </tr>
             <tr>
@@ -63,10 +64,10 @@
             </tr>
         </table>
         <hr>
-        <h4 style="color: #4a536e; font-size: 22px;">My Group</h4>
+        <h4 style="color: #4a536e; font-size: 22px;">My Groups</h4>
         {% if group_info %}
             {% for name in group_info %}
-                 <a href="{{ url_for('into_group', group_id=name.group_id) }}">
+                 <a href="{{ url_for('group_page', group_name=name.group_name) }}">
                 <button class="btn btn-primary" style="font-size: 15px; width: 200px;
                  margin:10px 20px; word-break: break-all; height: 100px; ">
                         {{ name.group_name }}
@@ -89,11 +90,16 @@
                     <div class="modal-body">
 
                         <div class="form-group" style="box-sizing: border-box;">
-                            <input type="text" name="group_name" placeholder="Enter Group Name" required
+                            <input type="text" name="group_name" value="{{ group_name }}" placeholder="Enter Group Name" required
                                    class="form-control">
                         </div>
+
                         <div class="form-group">
-                            <textarea name="describe"  rows="7" placeholder="Enter Group Description Here..."
+                            <input type="text" data-role="tagsinput" name="invite" value="{{ invite }}" id="invite" placeholder="Invite Team Members" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <textarea name="description" value="{{ description }}"  rows="7" placeholder="Enter Group Description Here..."
                                     required  class="form-control"></textarea>
                             </div>
                     </div>
@@ -116,16 +122,16 @@
     {% endif %}
          <h2>Post History</h2>
         <div class="main" style="padding: 0; background-color: #e2e1e8; margin: 0">
-    {% for ps in post_history %}
+    {% for post in post_history %}
        <ul>
             <li>
                 <div class="post-group">
-                    <p class="post-title"><a href="{{ url_for('into_reply', post_id=ps.post_id) }}">
-                        {{ ps.post_title }}</a></p>
-                    <P class="post-content">{{ ps.post_content }}</P>
+                    <p class="post-title"><a href="{{ url_for('into_reply', post_id=post.post_id) }}">
+                        {{ post.post_title }}</a></p>
+                    <P class="post-content">{{ post.post_content }}</P>
                     <div class="post-info">
-                        <span class="post-author">{{ ps.user_name }}</a></span>
-                        <span class="post-time">{{ ps.post_time }}</span>
+                        <span class="post-author">{{ post.user_name }}</a></span>
+                        <span class="post-time">{{ post.post_time }}</span>
                     </div>
                 </div>
             </li>

@@ -70,13 +70,13 @@
         </form>
     <h2>Group members</h2>
     <table>
-            {% for name in group_members %}
-            <tr>
-                <td><a href="{{ url_for('poster_profile', poster_id=name.user_id) }}">
-                     <button class="btn btn-primary" style="font-size: 15px; width: 100px;
-                 margin:10px; word-break: break-all; height: 50px; ">{{ name.user_name }}</button></a></td>
-            </tr>
-            {% endfor %}
+{#            {% for name in group_members %}#}
+{#            <tr>#}
+{#                <td><a href="{{ url_for('poster_profile', poster_id=name.user_id) }}">#}
+{#                     <button class="btn btn-primary" style="font-size: 15px; width: 100px;#}
+{#                 margin:10px; word-break: break-all; height: 50px; ">{{ name.user_name }}</button></a></td>#}
+{#            </tr>#}
+{#            {% endfor %}#}
     </table>
 </div>
 {% endblock %}
