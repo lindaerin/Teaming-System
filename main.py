@@ -165,6 +165,9 @@ def my_context_processor():
 def profile():
     # Check if user is loggedin
     if 'loggedin' in session:
+        # Grab image file
+        image_file = url_for('static', filename="profile_pic/default-image.png")
+
         # We need all the account info for the user so we can display it on the profile page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM tb_user WHERE user_id = %s', [session['user_id']])
@@ -197,7 +200,7 @@ def profile():
 
 
         # Show the profile page with account info
-        return render_template('profile.html', account=account, posts=posts, group_info=group_info)
+        return render_template('profile.html', account=account, posts=posts, group_info=group_info, image_file=image_file)
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
@@ -215,6 +218,7 @@ def poster_profile(poster_id):
 @app.route('/search/', methods=['GET', 'POST'])
 def search():
     if request.method == "POST" and 'username' in request.form:
+
         username = request.form['username']
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         # search by username
@@ -232,10 +236,13 @@ def search():
 # public user profile
 @app.route('/public/user/<user_name>')
 def public_profile(user_name):
+    # Grab image file
+    image_file = url_for('static', filename="profile_pic/default-image.png")
+
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute('SELECT * FROM tb_user WHERE user_name = %s', (user_name,))
     account = cursor.fetchone()
-    return render_template('profile.html', public_profile=account)
+    return render_template('profile.html', public_profile=account, image_file=image_file)
 
 
 

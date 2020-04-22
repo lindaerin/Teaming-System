@@ -16,7 +16,7 @@ ul {
 }
 
 ul li {
-       border-bottom: 1px solid #c5bebe;
+       border-bottom: 1px solid #c0b9b9;
        overflow: hidden;
        padding: 0;
 }
@@ -69,5 +69,10 @@ ul li {
             margin-left: 10px;
 }
 
+#profile-img {
+	width: 15%;
+}
 
-
+.profile-img{
+    width: 15%;
+}

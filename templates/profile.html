@@ -8,6 +8,7 @@
     {% if public_profile %}
     <div class="content">
         <h2>{{ public_profile.user_name}}'s Profile</h2>
+        <img class="rounded-circle profile-img" src="{{image_file}}">
         <table>
             <tr>
                 <td>Username:</td>
@@ -30,6 +31,8 @@
     {% else %}
     <div class="content">
         <h2>My Profile</h2>
+        <img class="rounded-circle profile-img" id="profile-img" src="{{image_file}}">
+
         <table>
             <tr>
                 <td>Username:</td>
