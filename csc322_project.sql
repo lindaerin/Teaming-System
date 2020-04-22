@@ -39,7 +39,10 @@ insert into tb_user (user_name, user_password,  email) values
 ('test1', '1', 'www.111@111.com'),
 ('test2','1','www.222@222.com'),
 ('test3','1', 'www.333@333.com'), 
-('test4','1', 'www.444@444.com');
+('test4','1', 'www.444@444.com'),
+('Bob','1', 'bob@email.com'),
+('Jane', '1', 'jane@email.com'),
+('CSGod', '1', 'h3ckz@email.com');
 
 
 CREATE TABLE tb_blacklist ( 
@@ -95,15 +98,53 @@ create table tb_group (
     group_name varchar(50),
     group_describe text,
     group_created_time timestamp default current_timestamp,
-    user_id int,
-    primary key (group_id),
-    foreign key (user_id) references tb_user (user_id)
+    primary key (group_id)
 	);
   
 ALTER TABLE tb_group AUTO_INCREMENT = 1000;  
 
 create table tb_group_members (
 	group_id int,
-    user_name varchar(50),
-    foreign key (group_id) references tb_group (group_id)
-)
+    user_id int,
+    foreign key (group_id) references tb_group (group_id),
+    foreign key(user_id) references tb_user(user_id)
+);
+
+-- insert test data for team
+insert into tb_group (group_name, group_describe) values 
+('Blue', 'Blue Vikings FTW!'),
+('Red', 'Red Spartans are the Champions'),
+('Green', 'Green Leopards are Mighty!'), 
+('Teal', 'Teal Tequila');
+
+DROP procedure IF EXISTS `insert_members`;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_members`(IN USER_ID varchar(50), IN NEWGROUP int)
+BEGIN
+	SET @myArrayOfUsers = USER_ID;
+    #SET @myArrayOfUsers = '100,101,102';
+    #SET @myArrayOfUsers = '106,107,108,';
+    WHILE(LOCATE(',', @myArrayOfUsers) > 0) DO
+            SET @value = SUBSTRING_INDEX(@myArrayOfUsers,',',1);
+            IF (LENGTH(@myArrayOfUsers) > LENGTH(@value) +2)  THEN
+                SET @myArrayOfUsers= SUBSTRING(@myArrayOfUsers, LENGTH(@value) + 2);
+                INSERT INTO `tb_group_members` VALUES(NEWGROUP, @value);
+            ELSE
+                INSERT INTO `tb_group_members` VALUES(NEWGROUP, @value);
+                -- to end while loop
+                SET @myArrayOfUsers=  '';
+            END IF;
+            IF LENGTH(@myArrayOfUsers) > 0 AND LOCATE(',', @myArrayOfUsers) = 0 then
+                -- Last entry was withóut comma
+                INSERT INTO `tb_group_members` VALUES(NEWGROUP, @myArrayOfUsers);
+            END IF;
+    END WHILE;
+END$$
+
+DELIMITER ;
+
+CALL insert_members('101,103,102,100', 1001);
+CALL insert_members('102,101', 1003);
+CALL insert_members('103,101,102', 1000);
+CALL insert_members('103,101,100', 1002);
