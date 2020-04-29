@@ -172,3 +172,40 @@ body.loggedin {
     margin: 20px 0;
     display: inline-block;}
 	.contant_box_404{ margin-top:-50px;}
+
+	.group-page__heading{
+		padding-top: 4%;
+		padding-bottom: 2%;
+	}
+
+	#createPollForm {
+		margin: 0 auto;
+		display: none;
+	}
+
+	.poll-parent-container {
+		text-align: center;
+	}
+
+	.poll-form-container {
+		display: inline-block;
+		/*background-color: blue;*/
+	}
+
+	.poll-form-content {
+		padding: 5% 7%;
+	}
+
+	.card-text {
+		padding-left: 0;
+		padding-right: 0;
+	}
+
+	/*.submitPoll-response {*/
+	/*	margin-bottom: 10px;*/
+	/*}*/
+
+	.pollOptions-container {
+		display: none;
+	}
+

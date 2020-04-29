@@ -2,6 +2,7 @@ import random
 import re
 import string
 from functools import wraps
+from collections import defaultdict
 
 import MySQLdb.cursors
 from flask import Flask, render_template, request, redirect, url_for, session, flash
@@ -492,11 +493,93 @@ def group_page(group_name):
         desc = cursor.fetchone()
         team_desc = desc['group_describe']
 
-        print(group)
+        # print(group)
 
-        return render_template('group_page.html', group=group, members=final_usernames, description=team_desc)
+        # get all group polls if there exists any
+        cursor.execute('SELECT * from tb_poll where group_id = %s', (group_id,))
+        polls = cursor.fetchall()
+        # print(polls)
+
+        # grab poll options - JOINS to grab group_id with poll_id and poll_id to tb_poll_options
+        cursor.execute('select tb_poll.poll_id, tb_poll_options.optionText from tb_group join tb_poll on tb_group.group_id = tb_poll.group_id join tb_poll_options on tb_poll.poll_id = tb_poll_options.poll_id where tb_group.group_id = %s', (group_id,))
+        poll_options = cursor.fetchall()
+        # print(poll_options)
+
+        # join poll details and poll options
+        poll_description = []
+
+        for post_details in polls:
+            poll_data_object = {'poll_id': post_details['poll_id'], 'poll_title': post_details['poll_title'], 'poll_body': post_details['poll_body'] }
+            poll_description.append(poll_data_object)
+
+        print(poll_description)
+
+        # for options in poll_options:
+        #     poll_data_object = { 'option': options['optionText']}
+        #
+        #     if(options['poll_id'] == poll_description)
+
+        # map poll_id with array of poll_optionText
+        poll_data = defaultdict(list)
+        aux_dict = []
+        for detail in poll_options:
+            current_data = (detail['poll_id'], detail['optionText'])
+            aux_dict.append(current_data)
+
+        for key, value in aux_dict:
+            poll_data[key].append(value)
+
+        print(poll_data.items())
+
+        poll_options_data = []
+
+        # for key, (option) in poll_data.items():
+        #     poll_options_data.append(option)
+
+
+
+
+        return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=poll_description, poll_options=poll_data)
     else:
         return render_template('404.html')
+
+@app.route('/group/<group_name>/create-poll', methods=['GET', 'POST'])
+def create_poll(group_name):
+    if request.method == 'POST':
+        title = request.form['poll-title']
+        question = request.form['poll-question']
+        option = request.form.getlist('poll-option')
+        option = ','.join(option)
+
+        #['option 1', 'option 2']
+
+        # store options into tb_poll_options
+
+
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+        # get group_id = where the poll will only be shown
+        cursor.execute('SELECT group_id from tb_group where group_name = %s', (group_name,))
+        group_id = cursor.fetchone()
+        group_id = group_id['group_id']
+
+        # insert poll into tb_poll
+        cursor.execute("INSERT INTO tb_poll (poll_title, poll_body, created_by, group_id)"
+                               " VALUES (%s, %s, %s, %s)", (title, question, session['user_id'], group_id))
+
+        # grab newly created poll_id
+        cursor.execute("SELECT LAST_INSERT_ID()")
+        new_poll_id = cursor.fetchone()
+        new_poll_id = new_poll_id['LAST_INSERT_ID()']
+
+        # insert poll options into tb_poll_options
+        cursor.callproc('insert_poll_options', [option, new_poll_id])
+
+        mysql.connection.commit();
+
+
+        return redirect(url_for('group_page', group_name=group_name))
+
 
 
 @app.errorhandler(404)

@@ -148,3 +148,78 @@ CALL insert_members('101,103,102,100', 1001);
 CALL insert_members('102,101', 1003);
 CALL insert_members('103,101,102', 1000);
 CALL insert_members('103,101,100', 1002);
+
+-- POLLING SYSTEM
+create table tb_poll (
+	poll_id int auto_increment,
+    poll_title varchar(50),
+    poll_body varchar(100),
+    poll_status int default 1,
+    created_by int,
+    poll_creation timestamp default current_timestamp,
+    group_id int,
+    primary key (poll_id),
+    foreign key (group_id) references tb_group (group_id),
+    foreign key (created_by) references tb_user (user_id)
+);
+
+create table tb_poll_options (
+	option_id int auto_increment,
+    poll_id int,
+    optionText varchar(50),
+    foreign key (poll_id) references tb_poll (poll_id),
+    primary key (option_id)
+);
+
+create table tb_poll_responses (
+	response_id int auto_increment,
+    poll_id int,
+    user_id int,
+    option_id int,
+    primary key (response_id),
+    foreign key (poll_id) references tb_poll (poll_id),
+    foreign key (user_id) references tb_user (user_id),
+    foreign key (option_id) references tb_poll_options (option_id)
+);
+
+-- insert a simple poll into a group
+insert into tb_poll (poll_title, poll_body, group_id, created_by) values 
+('Programming Language', 'What is your favorite programming language?', 1000, 102),
+('Feature', 'What feature do you think is most important?', 1001, 103),
+('Meeting Times', 'When are you available to meet this week?', 1002, 101);
+
+
+-- insert poll options
+DROP procedure IF EXISTS `insert_poll_options`;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_poll_options`(IN POLL_OPTIONS varchar(1000), IN NEWPOLL int)
+BEGIN
+	SET @myArrayOfOptions = POLL_OPTIONS;
+    WHILE(LOCATE(',', @myArrayOfOptions) > 0) DO
+            SET @value = SUBSTRING_INDEX(@myArrayOfOptions,',',1);
+            IF (LENGTH(@myArrayOfOptions) > LENGTH(@value) +2)  THEN
+                SET @myArrayOfOptions= SUBSTRING(@myArrayOfOptions, LENGTH(@value) + 2);
+                INSERT INTO `tb_poll_options` (poll_id, optionText) VALUES(NEWPOLL, @value);
+            ELSE
+                INSERT INTO `tb_poll_options` (poll_id, optionText) VALUES(NEWPOLL, @value);
+                -- to end while loop
+                SET @myArrayOfOptions=  '';
+            END IF;
+            IF LENGTH(@myArrayOfOptions) > 0 AND LOCATE(',', @myArrayOfOptions) = 0 then
+                -- Last entry was withóut comma
+                INSERT INTO `tb_poll_options` (poll_id, optionText) VALUES(NEWPOLL, @myArrayOfOptions);
+            END IF;
+    END WHILE;
+END$$
+
+DELIMITER ;
+
+-- CALL insert_poll_options('Python,JavaScript,Ruby,Go,C++', 1);
+-- CALL insert_poll_options('Messaging,Notification,Styling', 2);
+-- CALL insert_poll_options('Monday after class,Tuesday 2pm,Wednesday after class', 3);
+CALL insert_poll_options('Admin,User,VIP,Visitor', 4);
+
+-- insert poll responses by group_members - vote reponses
+
+
