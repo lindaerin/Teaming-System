@@ -486,7 +486,7 @@ def group_page(group_name):
             current_user = usernames[i]['user_name']
             final_usernames = final_usernames + ", " + current_user
 
-        print(final_usernames)
+        # print(final_usernames)
 
         # get group description
         cursor.execute('SELECT group_describe from tb_group WHERE group_name = %s', (group_name,))
@@ -500,46 +500,21 @@ def group_page(group_name):
         polls = cursor.fetchall()
         # print(polls)
 
-        # grab poll options - JOINS to grab group_id with poll_id and poll_id to tb_poll_options
-        cursor.execute('select tb_poll.poll_id, tb_poll_options.optionText from tb_group join tb_poll on tb_group.group_id = tb_poll.group_id join tb_poll_options on tb_poll.poll_id = tb_poll_options.poll_id where tb_group.group_id = %s', (group_id,))
-        poll_options = cursor.fetchall()
-        # print(poll_options)
+        # concatenate poll.optionText together grouped by poll_id
+        print('-------------------------------------')
+        cursor.execute('select tb_group.group_id, tb_poll.poll_id, tb_poll.poll_title, tb_poll.poll_body, group_concat(optionText) from tb_group join tb_poll on tb_group.group_id = tb_poll.group_id join tb_poll_options on tb_poll.poll_id = tb_poll_options.poll_id where tb_poll.group_id=%s group by poll_id', (group_id,))
+        all_options = cursor.fetchall()
+        print(all_options)
 
-        # join poll details and poll options
-        poll_description = []
-
-        for post_details in polls:
-            poll_data_object = {'poll_id': post_details['poll_id'], 'poll_title': post_details['poll_title'], 'poll_body': post_details['poll_body'] }
-            poll_description.append(poll_data_object)
-
-        print(poll_description)
-
-        # for options in poll_options:
-        #     poll_data_object = { 'option': options['optionText']}
-        #
-        #     if(options['poll_id'] == poll_description)
-
-        # map poll_id with array of poll_optionText
-        poll_data = defaultdict(list)
-        aux_dict = []
-        for detail in poll_options:
-            current_data = (detail['poll_id'], detail['optionText'])
-            aux_dict.append(current_data)
-
-        for key, value in aux_dict:
-            poll_data[key].append(value)
-
-        print(poll_data.items())
-
-        poll_options_data = []
-
-        # for key, (option) in poll_data.items():
-        #     poll_options_data.append(option)
+        # attempt to traverse through group_concat(optionText)
+        for i in range(0, len(all_options)):
+            # print(all_options[i]['group_concat(optionText)'])
+            current_poll_option = all_options[i]['group_concat(optionText)'].split(',')
+            all_options[i]['group_concat(optionText)'] = all_options[i]['group_concat(optionText)'].split(',')
+            print(all_options[i]['group_concat(optionText)'])
 
 
-
-
-        return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=poll_description, poll_options=poll_data)
+        return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options)
     else:
         return render_template('404.html')
 

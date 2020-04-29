@@ -84,13 +84,11 @@
                             <div class="pollOptions-container row">
                                 <div class="pollOptions-content container text-center">
                                         <div class="row">
-                                    {% for key, value in poll_options.items() %}
-                                        {% for option in value %}
+                                        {% for option in poll['group_concat(optionText)'] %}
                                             <div class="pollOptions-option col-lg-4">
                                                 <input type="radio" name="{{ option }}" value="{{ option }}">
                                                 <label for="{{ option }}">{{ option }}</label>
                                             </div>
-                                            {% endfor %}
                                         {% endfor %}
                                         </div>
 
