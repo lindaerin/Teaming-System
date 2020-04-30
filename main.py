@@ -501,17 +501,19 @@ def group_page(group_name):
         # print(polls)
 
         # concatenate poll.optionText together grouped by poll_id
-        print('-------------------------------------')
+        # print('-------------------------------------')
         cursor.execute('select tb_group.group_id, tb_poll.poll_id, tb_poll.poll_title, tb_poll.poll_body, group_concat(optionText) from tb_group join tb_poll on tb_group.group_id = tb_poll.group_id join tb_poll_options on tb_poll.poll_id = tb_poll_options.poll_id where tb_poll.group_id=%s group by poll_id', (group_id,))
         all_options = cursor.fetchall()
-        print(all_options)
-
-        # attempt to traverse through group_concat(optionText)
-        for i in range(0, len(all_options)):
-            # print(all_options[i]['group_concat(optionText)'])
-            current_poll_option = all_options[i]['group_concat(optionText)'].split(',')
-            all_options[i]['group_concat(optionText)'] = all_options[i]['group_concat(optionText)'].split(',')
-            print(all_options[i]['group_concat(optionText)'])
+        # print(all_options)
+        if all_options:
+            # attempt to traverse through group_concat(optionText)
+            for i in range(0, len(all_options)):
+                # print(all_options[i]['group_concat(optionText)'])
+                current_poll_option = all_options[i]['group_concat(optionText)'].split(',')
+                all_options[i]['group_concat(optionText)'] = all_options[i]['group_concat(optionText)'].split(',')
+                # print(all_options[i]['group_concat(optionText)'])
+        else:
+            all_options = []
 
 
         return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options)
@@ -555,7 +557,28 @@ def create_poll(group_name):
 
         return redirect(url_for('group_page', group_name=group_name))
 
+@app.route('/group/<group_name>/poll-vote', methods=['POST'])
+def poll_vote(group_name):
+    if request.method == 'POST':
+        if 'submit-vote' in request.form:
+            selected_vote = request.form['poll-option']
+            print(selected_vote)
 
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+            # get poll_id and option_id from poll_option
+            cursor.execute('SELECT poll_id, option_id from tb_poll_options WHERE optionText = %s', (selected_vote,))
+            poll_option_details = cursor.fetchall()
+            print(poll_option_details)
+            print(poll_option_details[0]['poll_id'])
+
+
+            cursor.execute("INSERT INTO tb_poll_responses (poll_id, option_id, user_id)"
+                           " VALUES (%s, %s, %s)", (poll_option_details[0]['poll_id'], poll_option_details[0]['option_id'], session['user_id']))
+
+            mysql.connection.commit();
+
+            return redirect(url_for('group_page', group_name=group_name))
 
 @app.errorhandler(404)
 def not_found(e):

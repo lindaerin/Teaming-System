@@ -173,9 +173,35 @@ body.loggedin {
     display: inline-block;}
 	.contant_box_404{ margin-top:-50px;}
 
+	/*======================
+		group page styling
+	=======================*/
 	.group-page__heading{
 		padding-top: 4%;
 		padding-bottom: 2%;
+	}
+
+	.group-info__container{
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+	}
+
+	.group-info {
+		display: inline-flex;
+		margin-left: 20px;
+		margin-right: 20px;
+		width: 650px;
+		/*display: flex;*/
+		justify-content: space-around;
+		align-items: center;
+		background-color: #E8F2FF;
+		border-radius: 25px;
+	}
+
+	.info {
+		padding-top: 10px;
 	}
 
 	#createPollForm {
@@ -201,11 +227,59 @@ body.loggedin {
 		padding-right: 0;
 	}
 
-	/*.submitPoll-response {*/
-	/*	margin-bottom: 10px;*/
-	/*}*/
 
 	.pollOptions-container {
 		display: none;
 	}
+
+	input[type="radio"], .poll-option-label {
+		cursor: pointer;
+	}
+
+	.radio input[type="radio"] {
+		border: 3px solid #00aeef;
+	}
+
+	.radio-btn-container {
+		text-align: center;
+	}
+
+
+
+	/* Style the tab */
+	.tab {
+	  overflow: hidden;
+	  border: 1px solid #ccc;
+	  background-color: #f1f1f1;
+	}
+
+	/* Style the buttons that are used to open the tab content */
+	.tab button {
+	  background-color: inherit;
+	  float: left;
+	  border: none;
+	  outline: none;
+	  cursor: pointer;
+	  padding: 14px 16px;
+	  transition: 0.3s;
+	}
+
+	/* Change background color of buttons on hover */
+	.tab button:hover {
+	  background-color: #E8F2FF;
+	}
+
+	/* Create an active/current tablink class */
+	.tab button.active {
+	  background-color: #D7E8FF;
+
+	}
+
+	/* Style the tab content */
+	.tabcontent {
+	  display: none;
+	  padding: 6px 12px;
+	  border-top: none;
+	}
+
 
