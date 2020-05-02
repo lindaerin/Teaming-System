@@ -58,13 +58,13 @@
                 <form id="createPollForm" class="col-md-8" action="{{ url_for('create_poll', group_name=group.group_name) }}" method="post">
                     <div class="form-input-content" id="formInputContent">
                           <div class="form-group">
-                            <input type="text" class="form-control" id="poll-title" name="poll-title" placeholder="Poll Title">
+                            <input type="text" class="form-control" id="poll-title" name="poll-title" placeholder="Poll Title" required>
                           </div>
                           <div class="form-group">
-                            <input type="text" class="form-control" id="poll-question" name="poll-question" placeholder="Your Question">
+                            <input type="text" class="form-control" id="poll-question" name="poll-question" placeholder="Your Question" required>
                           </div>
                             <div class="form-group">
-                                <input type="text" class="form-control" name="poll-option" placeholder="Option">
+                                <input type="text" class="form-control" name="poll-option" placeholder="Option" required>
                             </div>
                     </div>
                     <div class="btnContainer">
@@ -86,11 +86,11 @@
                       <div class="card-header">
                         <h6 class="card-title">{{ poll.poll_title }}</h6>
                       </div>
-                        <div class="row">
-                          <div class="card-body">
+                        <div class="row card-content__container">
+                          <div class="card-body float-left">
                             <p class="card-text">{{ poll.poll_body }}</p>
                           </div>
-                          <div class="card-body">
+                          <div class="card-body float-right">
                               <button type="button" class="btn btn-primary submitPoll-btn" onClick="">Respond</button>
                           </div>
                         </div>
@@ -98,14 +98,11 @@
                         <form action="{{ url_for('poll_vote', group_name=group.group_name) }}" method="post">
                                 <div class="pollOptions-container row">
                                     <div class="pollOptions-content container text-center">
-                                            <div class="row">
+                                            <div class="row pollOptions-option__parent">
 
                                             {% for option in poll['group_concat(optionText)'] %}
                                                 <div class="pollOptions-option radio col-lg-4">
                                                     <input type="radio" id="{{ option }}" name="poll-option" value="{{ option }}">
-                                                    <div class="radio-btn-container">
-                                                        <div class="radio-btn"></div>
-                                                    </div>
                                                     <label class="poll-option-label" for="{{ option }}">{{ option }}</label>
                                                 </div>
                                             {% endfor %}
@@ -245,7 +242,7 @@
 
 
         function addOptionField() {
-            var newOption = '<div class="form-group"><input type="text" class="form-control" name="poll-option" placeholder="Option"></div>';
+            var newOption = '<div class="form-group"><input type="text" class="form-control" name="poll-option" placeholder="Option" required></div>';
             $('#formInputContent').append(newOption);
         }
 

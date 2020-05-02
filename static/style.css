@@ -144,7 +144,10 @@ body.loggedin {
 =======================*/
 
 
-.page_404{ padding:40px 0; background:#fff; font-family: 'Arvo', serif;
+.page_404{
+	padding:40px 0;
+	background:#fff;
+	font-family: 'Arvo', serif;
 }
 
 .page_404  img{ width:100%;}
@@ -222,11 +225,34 @@ body.loggedin {
 		padding: 5% 7%;
 	}
 
+	.card-content__container {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.card-body {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
 	.card-text {
 		padding-left: 0;
 		padding-right: 0;
 	}
 
+	.pollOptions-option {
+		display: flex;
+		align-items: center;
+		justify-content: space-around;
+	}
+
+	.pollOptions-option__parent {
+		display: flex;
+		align-items: center;
+		justify-content: space-around;
+	}
 
 	.pollOptions-container, .showPollResults-container {
 		display: none;

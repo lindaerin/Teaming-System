@@ -215,10 +215,9 @@ END$$
 
 DELIMITER ;
 
--- CALL insert_poll_options('Python,JavaScript,Ruby,Go,C++', 1);
--- CALL insert_poll_options('Messaging,Notification,Styling', 2);
--- CALL insert_poll_options('Monday after class,Tuesday 2pm,Wednesday after class', 3);
-CALL insert_poll_options('Admin,User,VIP,Visitor', 4);
+CALL insert_poll_options('Python,JavaScript,Ruby,Go,C++', 1);
+CALL insert_poll_options('Messaging,Notification,Styling', 2);
+CALL insert_poll_options('Monday after class,Tuesday 2pm,Wednesday after class', 3);
 
 -- insert poll responses by group_members - vote reponses
 
