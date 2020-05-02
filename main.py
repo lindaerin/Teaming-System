@@ -500,11 +500,22 @@ def group_page(group_name):
         polls = cursor.fetchall()
         # print(polls)
 
+        poll_id_data = []
+        poll_ids = ''
+        # grab all group poll ID
+        for poll in polls:
+            poll_id_data.append(poll['poll_id'])
+            poll_ids += str(poll['poll_id']) + ','
+
+
+        # print(poll_id_data)
+        # print(poll_ids)
+
         # concatenate poll.optionText together grouped by poll_id
         # print('-------------------------------------')
-        cursor.execute('select tb_group.group_id, tb_poll.poll_id, tb_poll.poll_title, tb_poll.poll_body, group_concat(optionText) from tb_group join tb_poll on tb_group.group_id = tb_poll.group_id join tb_poll_options on tb_poll.poll_id = tb_poll_options.poll_id where tb_poll.group_id=%s group by poll_id', (group_id,))
+        cursor.execute('select tb_group.group_id, tb_poll.poll_id, tb_poll.poll_title, tb_poll.poll_body, group_concat(optionText) from tb_group join tb_poll on tb_group.group_id = tb_poll.group_id join tb_poll_options on tb_poll.poll_id = tb_poll_options.poll_id where tb_poll.poll_id in (select poll_id from tb_poll where poll_id NOT IN (select poll_id from tb_poll_responses where tb_poll_responses.user_id = %s) and group_id = %s) group by poll_id', (session['user_id'], group_id,))
         all_options = cursor.fetchall()
-        # print(all_options)
+        print(all_options)
         if all_options:
             # attempt to traverse through group_concat(optionText)
             for i in range(0, len(all_options)):
@@ -512,11 +523,25 @@ def group_page(group_name):
                 current_poll_option = all_options[i]['group_concat(optionText)'].split(',')
                 all_options[i]['group_concat(optionText)'] = all_options[i]['group_concat(optionText)'].split(',')
                 # print(all_options[i]['group_concat(optionText)'])
+            # print(all_options)
         else:
             all_options = []
 
 
-        return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options)
+        # get user's voted polls information/data
+        cursor.execute('select tb_poll.poll_title, tb_poll.poll_body, tb_poll.poll_id, tb_poll_options.optionText from tb_poll join tb_poll_options on tb_poll.poll_id = tb_poll_options.poll_id join tb_poll_responses on tb_poll_options.option_id = tb_poll_responses.option_id where tb_poll_responses.user_id = %s and tb_poll.group_id = %s', (session['user_id'], group_id,))
+        voted_polls = cursor.fetchall();
+        # print(voted_polls);
+
+
+        # get user's unanswered polls
+        cursor.execute('select poll_id from tb_poll where poll_id NOT IN (select poll_id from tb_poll_responses where tb_poll_responses.user_id = %s) and group_id = %s', (session['user_id'] ,group_id,))
+        unanswered_polls = cursor.fetchall()
+
+        # print(unanswered_polls)
+        # ({'poll_id': 5}, {'poll_id': 9})
+
+        return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options, voted_polls=voted_polls)
     else:
         return render_template('404.html')
 

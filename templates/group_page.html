@@ -6,8 +6,8 @@
 
 {% block content %}
 
-<div class="content">
-    <h2 class="text-center group-page__heading"> Group Page of {{group.group_name}}</h2>
+<div class="">
+    <h4 class="text-center group-page__heading"> Group Page of {{group.group_name}}</h4>
 </div>
     <div class="group-info__container">
         <div class="group-info">
@@ -122,6 +122,14 @@
                 </div>
             {% endfor %}
         {% endif %}
+
+        {% if voted_polls %}
+            {% for poll in voted_polls %}
+                {{ poll.poll_title }}
+                {{ poll.poll_body }}
+                {{ poll.optionText }}
+            {% endfor %}
+        {% endif %}
     </div>
 <script>
     document.getElementById("defaultOpen").click();
@@ -139,6 +147,7 @@
                 submitPollBtn[i].addEventListener('click', function (event) {
                     console.log(i);
                     console.log(pollOption[i]);
+                    console.log(submitPollBtn[i]);
 
                     if (pollOption[i].style.display === ''){
                         pollOption[i].style.display = 'none';
@@ -147,6 +156,14 @@
                         pollOption[i].style.display = "block";
                     } else {
                         pollOption[i].style.display = "none";
+                    }
+                    if(submitPollBtn[i].innerHTML === ''){
+                        submitPollBtn[i].innerHTML = 'Respond';
+                    }
+                    if(submitPollBtn[i].innerHTML === 'Respond'){
+                        submitPollBtn[i].innerHTML = 'Hide';
+                    } else {
+                        submitPollBtn[i].innerHTML = 'Respond';
                     }
 
                 }, false);

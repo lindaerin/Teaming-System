@@ -1,3 +1,6 @@
+button {
+    outline: none;
+}
 
 .form-container {
     width: 500px;

@@ -245,11 +245,11 @@ body.loggedin {
 	}
 
 
-
 	/* Style the tab */
 	.tab {
+		margin-top: 2%;
 	  overflow: hidden;
-	  border: 1px solid #ccc;
+	  border: 1px solid #eee;
 	  background-color: #f1f1f1;
 	}
 
@@ -272,7 +272,6 @@ body.loggedin {
 	/* Create an active/current tablink class */
 	.tab button.active {
 	  background-color: #D7E8FF;
-
 	}
 
 	/* Style the tab content */
