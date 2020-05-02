@@ -228,7 +228,7 @@ body.loggedin {
 	}
 
 
-	.pollOptions-container {
+	.pollOptions-container, .showPollResults-container {
 		display: none;
 	}
 

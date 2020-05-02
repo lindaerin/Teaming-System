@@ -124,22 +124,52 @@
         {% endif %}
 
         {% if voted_polls %}
+            <h5 class="text-center">My Responded Polls</h5>
             {% for poll in voted_polls %}
-                {{ poll.poll_title }}
-                {{ poll.poll_body }}
-                {{ poll.optionText }}
+                <div class="container col-md-4 mx-auto">
+                    <div class="card">
+                      <div class="card-header">
+                        <h6 class="card-title">{{ poll.poll_title }}</h6>
+                      </div>
+                        <div class="row">
+                          <div class="card-body">
+                            <p class="card-text">{{ poll.poll_body }}</p>
+                          </div>
+                          <div class="card-body">
+                              <button type="button" class="btn btn-warning showPollResults-btn" onClick="">Show Results</button>
+                          </div>
+                        </div>
+
+                                <div class="showPollResults-container row">
+                                    <div class="showPollResults-content container text-center">
+                                            <div class="row">
+                                                <div class="pollOptions-option radio col-lg-4">
+                                                    <p>{{ poll.optionText }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                </div>
+                    </div>
+
+                </div>
             {% endfor %}
         {% endif %}
     </div>
 <script>
     document.getElementById("defaultOpen").click();
-    var pollOption = document.getElementsByClassName('pollOptions-container')
 
+    var pollOption = document.getElementsByClassName('pollOptions-container');
+    var showPollResults = document.getElementsByClassName('showPollResults-container');
     /** get respond button index **/
-    var submitPollBtn = document.getElementsByClassName('submitPoll-btn')
+    var submitPollBtn = document.getElementsByClassName('submitPoll-btn');
+    var showPollResultsBtn = document.getElementsByClassName('showPollResults-btn');
 
     for(var i = 0; i < pollOption.length; i++){
         pollOption[i].style.display = 'none';
+    }
+
+    for(var i = 0; i < showPollResults.length; i++){
+        showPollResults[i].style.display = 'none';
     }
 
     for (var i = 0; i < submitPollBtn.length; i++) {
@@ -170,6 +200,34 @@
             })(i);
         }
 
+        for (var i = 0; i < showPollResultsBtn.length; i++) {
+            (function (i) {
+                showPollResultsBtn[i].addEventListener('click', function (event) {
+                    {#console.log(i);#}
+                    {#console.log(pollOption[i]);#}
+                    console.log(showPollResultsBtn[i]);
+
+                    if (showPollResults[i].style.display === ''){
+                        showPollResults[i].style.display = 'none';
+                    }
+                    if (showPollResults[i].style.display === "none") {
+                        showPollResults[i].style.display = "block";
+                    } else {
+                        showPollResults[i].style.display = "none";
+                    }
+                    if(showPollResultsBtn[i].innerHTML === ''){
+                        showPollResultsBtn[i].innerHTML = 'Show Results';
+                    }
+                    if(showPollResultsBtn[i].innerHTML === 'Show Results'){
+                        showPollResultsBtn[i].innerHTML = 'Hide';
+                    } else {
+                        showPollResultsBtn[i].innerHTML = 'Show Results';
+                    }
+
+                }, false);
+            })(i);
+        }
+
 
     function togglePollForm() {
 
@@ -184,6 +242,7 @@
         }
 
     }
+
 
         function addOptionField() {
             var newOption = '<div class="form-group"><input type="text" class="form-control" name="poll-option" placeholder="Option"></div>';

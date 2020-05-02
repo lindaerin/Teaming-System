@@ -535,8 +535,8 @@ def group_page(group_name):
 
 
         # get user's unanswered polls
-        cursor.execute('select poll_id from tb_poll where poll_id NOT IN (select poll_id from tb_poll_responses where tb_poll_responses.user_id = %s) and group_id = %s', (session['user_id'] ,group_id,))
-        unanswered_polls = cursor.fetchall()
+        # cursor.execute('select poll_id from tb_poll where poll_id NOT IN (select poll_id from tb_poll_responses where tb_poll_responses.user_id = %s) and group_id = %s', (session['user_id'] ,group_id,))
+        # unanswered_polls = cursor.fetchall()
 
         # print(unanswered_polls)
         # ({'poll_id': 5}, {'poll_id': 9})
