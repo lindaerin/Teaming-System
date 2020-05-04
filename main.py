@@ -515,7 +515,7 @@ def group_page(group_name):
         # print('-------------------------------------')
         cursor.execute('select tb_group.group_id, tb_poll.poll_id, tb_poll.poll_title, tb_poll.poll_body, group_concat(optionText) from tb_group join tb_poll on tb_group.group_id = tb_poll.group_id join tb_poll_options on tb_poll.poll_id = tb_poll_options.poll_id where tb_poll.poll_id in (select poll_id from tb_poll where poll_id NOT IN (select poll_id from tb_poll_responses where tb_poll_responses.user_id = %s) and group_id = %s) group by poll_id', (session['user_id'], group_id,))
         all_options = cursor.fetchall()
-        print(all_options)
+        # print(all_options)
         if all_options:
             # attempt to traverse through group_concat(optionText)
             for i in range(0, len(all_options)):

@@ -5,17 +5,17 @@
 {% endblock %}
 
 {% block content %}
-
-<div class="">
+<div class="group-page__main-heading__container row">
+<div class="group-page__content__container col-lg-6">
     <h4 class="text-center group-page__heading"> Group Page of {{group.group_name}}</h4>
-</div>
+
     <div class="group-info__container">
         <div class="group-info">
         <p class="info"><b>Group Members:</b> {{ members }}</p>
         <p class="info"><b>Description:</b> {{ description}}</p>
         </div>
     </div>
-
+</div>
 {#    If User is a group member in the group, show create post form and create poll form #}
 {# Create Post Form #}
 
@@ -38,16 +38,27 @@
     {% endfor %}
 
 
-    <div class="tab">
+    <div class="tab col-lg-6">
         <button class="tablinks" onclick="openTab(event, 'Posts')">Posts</button>
         <button class="tablinks" onclick="openTab(event, 'Polls')" id="defaultOpen">Polls</button>
     </div>
 
-    <div id="Posts" class="tabcontent">
-        <p>I am a post section</p>
     </div>
 
+    <div class="tabcontent__container">
+    <div class="row">
 
+        <div id="Posts" class="tabcontent" style="right: 20%;">
+            <p>I am a post section</p>
+            <p>I am a post section</p>
+        </div>
+
+
+    </div>
+    </div>
+
+<div class="tabcontent__container">
+    <div class="row">
     <div id="Polls" class="tabcontent">
         {#  Create Poll Form  #}
         <div class="poll-parent-container container">
@@ -81,7 +92,7 @@
         {% if polls %}
         <h5 class="text-center">Current Polls</h5>
         {% for poll in polls %}
-            <div class="container col-md-4 mx-auto">
+            <div class="container col-md-12 mx-auto">
                     <div class="card">
                       <div class="card-header">
                         <h6 class="card-title">{{ poll.poll_title }}</h6>
@@ -101,7 +112,7 @@
                                             <div class="row pollOptions-option__parent">
 
                                             {% for option in poll['group_concat(optionText)'] %}
-                                                <div class="pollOptions-option radio col-lg-4">
+                                                <div class="pollOptions-option radio col-lg-12">
                                                     <input type="radio" id="{{ option }}" name="poll-option" value="{{ option }}">
                                                     <label class="poll-option-label" for="{{ option }}">{{ option }}</label>
                                                 </div>
@@ -123,7 +134,7 @@
         {% if voted_polls %}
             <h5 class="text-center">My Responded Polls</h5>
             {% for poll in voted_polls %}
-                <div class="container col-md-4 mx-auto">
+                <div class="container col-md-12 mx-auto">
                     <div class="card">
                       <div class="card-header">
                         <h6 class="card-title">{{ poll.poll_title }}</h6>
@@ -140,7 +151,7 @@
                                 <div class="showPollResults-container row">
                                     <div class="showPollResults-content container text-center">
                                             <div class="row">
-                                                <div class="pollOptions-option radio col-lg-4">
+                                                <div class="pollOptions-option radio col-lg-12">
                                                     <p>{{ poll.optionText }}</p>
                                                 </div>
                                             </div>
@@ -152,6 +163,12 @@
             {% endfor %}
         {% endif %}
     </div>
+    </div>
+    </div>
+
+
+
+
 <script>
     document.getElementById("defaultOpen").click();
 
@@ -252,7 +269,8 @@
           var i, tabcontent, tablinks;
 
           // Get all elements with class="tabcontent" and hide them
-          tabcontent = document.getElementsByClassName("tabcontent");
+          tabcontent= document.getElementsByClassName("tabcontent");
+
           for (i = 0; i < tabcontent.length; i++) {
             tabcontent[i].style.display = "none";
           }
