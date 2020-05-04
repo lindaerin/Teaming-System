@@ -612,31 +612,44 @@ def not_found(e):
 
 
 # invite feature
-@app.route("/invite/<group_id>", methods=['POST'])
-def invite(group_id):
+@app.route("/<group_name>/invite/", methods=['POST'])
+def invite(group_name):
     if request.method == 'POST':
         user_name = request.form['user_name']
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        # get user_id from user_name
+        cursor.execute('SELECT user_id FROM tb_user WHERE user_name = %s', (user_name,))
+        user_id_exist = cursor.fetchone()
+        user_id = user_id_exist['user_id']
+
         # check the user name the user inputted if exist in user database
         cursor.execute('SELECT user_name FROM tb_user WHERE user_name = %s', (user_name,))
         user_name_exist = cursor.fetchone()
+
+        # get group_id
+        cursor.execute('SELECT group_id FROM tb_group WHERE group_name = %s', (group_name,))
+        group_id = cursor.fetchone()
+        group_id = group_id['group_id']
+
+
         # if not exist, output error message, then return to the group page
-        if not user_name_exist:
+        if not user_id_exist:
             flash("User doesn't exist")
-            return redirect(url_for('group_page', group_id=group_id))
+            return redirect(url_for('group_page', group_name=group_name))
         # otherwise, check the username if exist in this group
         cursor.execute('SELECT tb_group_members.* FROM tb_group_members INNER JOIN tb_user ON '
-                       'tb_group_members.user_name = tb_user.user_name'
-                       ' WHERE tb_user.user_name = %s AND tb_group_members.group_id = %s', (user_name, group_id))
+                       'tb_group_members.user_id = tb_user.user_id'
+                       ' WHERE tb_user.user_id = %s AND tb_group_members.group_id = %s', (user_id, group_id))
         group_member = cursor.fetchall()
         # if this user already in this group, show the error message
         if group_member:
             flash('This User Already in this Group')
-            return redirect(url_for('group_page', group_id=group_id))
+            return redirect(url_for('group_page', group_name=group_name))
+
         # otherwise, insert data into table group_members
-        cursor.execute('INSERT INTO tb_group_members (group_id, user_name) VALUES (%s, %s)', (group_id, user_name))
+        cursor.execute('INSERT INTO tb_group_members (group_id, user_id) VALUES (%s, %s)', (group_id, user_id))
         mysql.connection.commit()
-        return redirect(url_for('group_page', group_id=group_id))
+        return redirect(url_for('group_page', group_name=group_name))
 
 
 if __name__ == '__main__':
