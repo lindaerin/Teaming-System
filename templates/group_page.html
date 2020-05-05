@@ -155,7 +155,12 @@
                                             <div class="row">
                                                 <div class="pollOptions-option radio col-lg-6">
                                                     <b>Highest Vote:</b>
+                                                    {% if poll.vote_count <= 1 %}
+                                                        <p>Not enough votes...</p>
+
+                                                    {% else %}
                                                     <p>{{ poll.highest_vote }} <span class="badge badge-warning"> {{ poll.vote_count }}</span></p>
+                                                    {% endif %}
                                                 </div>
 
                                                 <div class="pollOptions-option radio col-lg-6">
