@@ -529,17 +529,30 @@ def group_page(group_name):
 
 
         # get user's voted polls information/data
-        cursor.execute('select tb_poll.poll_title, tb_poll.poll_body, tb_poll.poll_id, tb_poll_options.optionText from tb_poll join tb_poll_options on tb_poll.poll_id = tb_poll_options.poll_id join tb_poll_responses on tb_poll_options.option_id = tb_poll_responses.option_id where tb_poll_responses.user_id = %s and tb_poll.group_id = %s', (session['user_id'], group_id,))
+        cursor.execute('select tb_poll.poll_title, tb_poll.poll_body, tb_poll.poll_id, tb_poll_options.optionText, tb_poll.vote_count, tb_poll.highest_vote from tb_poll join tb_poll_options on tb_poll.poll_id = tb_poll_options.poll_id join tb_poll_responses on tb_poll_options.option_id = tb_poll_responses.option_id where tb_poll_responses.user_id = %s and tb_poll.group_id = %s', (session['user_id'], group_id,))
         voted_polls = cursor.fetchall();
-        # print(voted_polls);
+        print('--------------------VOTED POLL----------------')
+        print(voted_polls);
 
+        # get user's voted_polls poll_id
+        if voted_polls:
+            for i, poll in enumerate(voted_polls):
 
-        # get user's unanswered polls
-        # cursor.execute('select poll_id from tb_poll where poll_id NOT IN (select poll_id from tb_poll_responses where tb_poll_responses.user_id = %s) and group_id = %s', (session['user_id'] ,group_id,))
-        # unanswered_polls = cursor.fetchall()
+                # get highest count option givn poll_id
+                cursor.execute('select option_id, COUNT(option_id)  from tb_poll_responses where poll_id = %s group by option_id order by count(option_id) desc limit 1', (poll['poll_id'],))
+                poll_highest_vote_count = cursor.fetchone()
 
-        # print(unanswered_polls)
-        # ({'poll_id': 5}, {'poll_id': 9})
+                # get poll_highest_vote_count's optionText
+                cursor.execute('select optionText from tb_poll_options where option_id = %s', (poll_highest_vote_count['option_id'],))
+                highest_vote_option = cursor.fetchone()
+
+                # traverse through voted_poll data and add poll_highest_vote_count into vote_count, and highest_vote_option into highest_vote
+                voted_polls[i]['vote_count'] = poll_highest_vote_count['COUNT(option_id)']
+                voted_polls[i]['highest_vote'] = highest_vote_option['optionText']
+
+            print('------------NEW ALTERED VOTED POLL DATA_----------------')
+            print(voted_polls)
+
 
         return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options, voted_polls=voted_polls)
     else:
@@ -587,15 +600,15 @@ def poll_vote(group_name):
     if request.method == 'POST':
         if 'submit-vote' in request.form:
             selected_vote = request.form['poll-option']
-            print(selected_vote)
+            # print(selected_vote)
 
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
             # get poll_id and option_id from poll_option
             cursor.execute('SELECT poll_id, option_id from tb_poll_options WHERE optionText = %s', (selected_vote,))
             poll_option_details = cursor.fetchall()
-            print(poll_option_details)
-            print(poll_option_details[0]['poll_id'])
+            # print(poll_option_details)
+            # print(poll_option_details[0]['poll_id'])
 
 
             cursor.execute("INSERT INTO tb_poll_responses (poll_id, option_id, user_id)"

@@ -153,7 +153,13 @@
                                 <div class="showPollResults-container row">
                                     <div class="showPollResults-content container text-center">
                                             <div class="row">
-                                                <div class="pollOptions-option radio col-lg-12">
+                                                <div class="pollOptions-option radio col-lg-6">
+                                                    <b>Highest Vote:</b>
+                                                    <p>{{ poll.highest_vote }} <span class="badge badge-warning"> {{ poll.vote_count }}</span></p>
+                                                </div>
+
+                                                <div class="pollOptions-option radio col-lg-6">
+                                                    <b>Your Vote:</b>
                                                     <p>{{ poll.optionText }}</p>
                                                 </div>
                                             </div>
