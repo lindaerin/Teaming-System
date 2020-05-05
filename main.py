@@ -409,16 +409,20 @@ def create_group():
         for i in range(0, len(new_invite)):
             cursor.execute('SELECT user_id from tb_user WHERE user_name = %s', (new_invite[i],))
             current = cursor.fetchone()
-            current_user = current['user_id']
-            group_members = group_members + "," + str(current_user)
+            if not current:
+                msg = 'The user: ' + new_invite[i] + ' does not exist'
+                return render_template('group.html', msg=msg, group=group_name, invite=invite, description=description)
+            else:
+                current_user = current['user_id']
+                group_members = group_members + "," + str(current_user)
 
         if not group_name:
             msg='Please enter a group name'
-            return render_template('group.html', msg=msg, group_name=group_name, invite=invite, description=description)
+            return render_template('group.html', msg=msg, group=group_name, invite=invite, description=description)
 
         if not invite:
             msg = 'Please invite users to group'
-            return render_template('group.html', msg=msg, group_name=group_name, invite=invite, description=description)
+            return render_template('group.html', msg=msg, group=group_name, invite=invite, description=description)
 
         if not invite and not group_name:
             msg = 'Please fill out the form'
@@ -435,7 +439,7 @@ def create_group():
         # If team_name currently exists, show error that it is taken
         if name:
             msg = 'This Project Name is already taken!'
-            return render_template('group.html', msg=msg, group_name=group_name, invite=invite, description=description)
+            return render_template('group.html', msg=msg, group=group_name, invite=invite, description=description)
         else:
             msg = 'You have successfully created a team!'
             # Insert project name to make project id into tb_group
