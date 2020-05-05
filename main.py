@@ -493,7 +493,8 @@ def group_page(group_name):
         desc = cursor.fetchone()
         team_desc = desc['group_describe']
 
-        # print(group)
+        print('-----------------GROUP DETAILS--------------')
+        print(group)
 
         # get all group polls if there exists any
         cursor.execute('SELECT * from tb_poll where group_id = %s', (group_id,))
@@ -534,6 +535,9 @@ def group_page(group_name):
         print('--------------------VOTED POLL----------------')
         print(voted_polls);
 
+        if not voted_polls:
+            voted_polls = []
+
         # get user's voted_polls poll_id
         if voted_polls:
             for i, poll in enumerate(voted_polls):
@@ -553,8 +557,10 @@ def group_page(group_name):
             print('------------NEW ALTERED VOTED POLL DATA_----------------')
             print(voted_polls)
 
+        group_status='active'
 
-        return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options, voted_polls=voted_polls)
+
+        return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options, voted_polls=voted_polls, group_status=group_status)
     else:
         return render_template('404.html')
 
@@ -617,6 +623,12 @@ def poll_vote(group_name):
             mysql.connection.commit();
 
             return redirect(url_for('group_page', group_name=group_name))
+
+@app.route('/group/close', methods=['GET','POST'])
+def close_group():
+    if request.method == 'GET':
+        return render_template('close_group.html')
+
 
 @app.errorhandler(404)
 def not_found(e):

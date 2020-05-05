@@ -7,7 +7,13 @@
 {% block content %}
 <div class="group-page__main-heading__container row">
 <div class="group-page__content__container col-lg-6">
-    <h4 class="text-center group-page__heading"> Group Page of {{group.group_name}}</h4>
+    <h4 class="text-center group-page__heading"> Group Page of {{group.group_name}}
+        {% if group_status == 'active' %}
+            <span class="badge badge-primary">Active</span>
+        {% else %}
+            <span class="badge badge-danger">Inactive</span>
+        {% endif %}
+    </h4>
 
     <div class="group-info__container">
         <div class="row">
@@ -64,7 +70,9 @@
     <div id="Polls" class="tabcontent">
         {#  Create Poll Form  #}
         <div class="poll-parent-container container">
+            {% if group_status == 'active' %}
         <button type="button" class="btn btn-info" onClick="togglePollForm()">Create Poll</button>
+            {% endif %}
 
             <div class="row poll-form-container d-flex col-md-6 mx-auto" id="pollFormContainer">
                 <div class="poll-form-content col-md-12">
@@ -181,7 +189,8 @@
 
     <div class="group-invite__container container">
         <div class="row">
-            <div class="col-lg-6">
+        {% if group_status == 'active' %}
+            <div class="col-lg-4">
                 <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">Invite</button>
 
             <form action="{{ url_for('invite', group_name=group.group_name) }}" method="post">
@@ -224,7 +233,14 @@
                     {% endwith %}
                 </div>
             </form>
+            {% endif %}
+            <form action="{{ url_for('close_group') }}" method="get">
+                <button type="submit" class="btn btn-outline-danger">Close Group</button>
+            </form>
+
         </div>
+
+
     </div>
 
 

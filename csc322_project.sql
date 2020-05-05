@@ -95,8 +95,9 @@ ALTER TABLE tb_reply AUTO_INCREMENT = 500;
 -- create table team 
 create table tb_group (
 	group_id int auto_increment,
-    group_name varchar(50),
-    group_describe text,
+    group_name varchar(50) NOT NULL,
+    group_describe text NOT NULL,
+    group_status varchar(50) DEFAULT 'active',
     group_created_time timestamp default current_timestamp,
     primary key (group_id)
 	);
@@ -155,6 +156,8 @@ create table tb_poll (
     poll_title varchar(50),
     poll_body varchar(100),
     poll_status int default 1,
+    vote_count int default 0,
+    highest_vote varchar(100) default NULL,
     created_by int,
     poll_creation timestamp default current_timestamp,
     group_id int,
@@ -221,4 +224,6 @@ CALL insert_poll_options('Monday after class,Tuesday 2pm,Wednesday after class',
 
 -- insert poll responses by group_members - vote reponses
 
+ 
+-- create group/project evaluation system table
 
