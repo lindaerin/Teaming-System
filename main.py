@@ -5,10 +5,24 @@ from functools import wraps
 
 import MySQLdb.cursors
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from flask_mail import Mail
+from flask_mail import Mail, Message
 from flask_mysqldb import MySQL
 
 app = Flask(__name__)
+
+#email configurations 
+mail_settings = {
+    "MAIL_SERVER": 'smtp.gmail.com',
+    "MAIL_PORT": 465,
+    "MAIL_USE_TLS": False,
+    "MAIL_USE_SSL": True,
+    "MAIL_USERNAME": 'noreplywhiteboard001@gmail.com',
+    "MAIL_PASSWORD": 'csc322spring',
+    "MAIL_DEFAULT_SENDER": 'noreplywhiteboard001@gmail.com',
+    "MAIL_SUPPRESS_SEND": False
+}
+
+app.config.update(mail_settings)
 mail = Mail(app)
 
 # Change this to your secret key (can be anything, it's for extra protection)
@@ -17,7 +31,7 @@ app.secret_key = '111'
 # Enter your database connection details below
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = '111111'
+app.config['MYSQL_PASSWORD'] = 'Bang1adesh'
 app.config['MYSQL_DB'] = 'csc322_project'
 
 # Intialize MySQL
@@ -36,42 +50,132 @@ def login_required(func):  # login required decorator
     return wrapper
 
 
+def admin_login_required(func):  # admin login required decorato
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if session.get('user_id') and session.get('username') == 'admin':
+            return func(*args, **kwargs)
+        else:
+            return redirect(url_for('login'))
+
+    return wrapper
+
+
 @app.route("/admin", methods=['get', 'post'])  # admin adding or deleting accounts
+@admin_login_required #must be logged in as admin to access this page!
 def admin():
-    # need to make only admin access throgh loginrequired
     if request.method == 'POST':
         # add the account to the database
         if 'Approve' in request.form:
-            user_id = request.form['user_id']
+            #get data
             user_name = request.form['username']
             email = request.form['email']
             interest = request.form['interest']
             credential = request.form['credential']
             user_password = ''.join([random.choice(string.ascii_letters + string.digits) for n in range(10)])
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            #check to see if accoutn already exist 
             cursor.execute('SELECT * FROM tb_user WHERE email = %s', (email,))
             account = cursor.fetchone()
+            #if it doesnt insert into db 
             if not account:
                 cursor.execute("INSERT INTO tb_user (user_name, user_password, email, credential, interest)"
                                " VALUES (%s, %s, %s, %s, %s)", (user_name, user_password, email, credential, interest))
-            cursor.execute("DELETE FROM %s WHERE user_id = %s" % ('tb_applied', user_id))
+                if request.form['message'] == "NONE":
+                    welcome = user_name + " your Whiteboard application has been approved and your account has been created. Your temporary password is " + user_password + ". Use this link to reset your password : http://localhost:5000/reset_password"
+                else: 
+                    welcome = user_name + " your Whiteboard appeal has been approved and your account has been created. Your temporary password is " + user_password + " Use this link to reset your password : http://localhost:5000/reset_password"
+                msg = Message("Welcome to Whiteboard!", recipients = [email])
+                msg.body = welcome
+                mail.send(msg)
+            #delete from applied     
+            cursor.execute("DELETE FROM tb_applied WHERE email = %s" , (email,))
             mysql.connection.commit()
 
         # reject the account
-        if 'Reject' in request.form:
-            user_id = request.form['user_id']
+        elif 'Reject' in request.form:
+            username = request.form['username']
+            email = request.form['email']
+
+            #send email
+            if request.form['message'] == "NONE":
+                reject = username + " we are sorry to say, your Whiteboard application has not been approved. Click on this link in order to appeal: http://localhost:5000/appeal"
+            else:
+                reject = username + " We are sorry to say, your Whiteboard appeal has not been approved"
+                #put them into the blacklist 
+                cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                cursor.execute("INSERT INTO tb_blacklist (email)" "VALUES (%s)", (email,))
+                mysql.connection.commit()
+            msg = Message("Thank you for applying", recipients = [email])
+            msg.body = reject
+            mail.send(msg)
+
+            #delete from tb applied 
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            cursor.execute("DELETE FROM %s WHERE user_id = %s" % ('tb_applied', user_id))
+            cursor.execute("DELETE FROM tb_applied WHERE email = %s", (email,))
             mysql.connection.commit()
 
     # load the admin page
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT * FROM tb_applied order by user_id')
+    cursor.execute('SELECT * FROM tb_applied')
     # Fetch all post records and return result
     applied = cursor.fetchall()
     if applied:
         return render_template('admin.html', applied=applied)
     return render_template('admin.html')
+
+
+#page where they can reset the password 
+@app.route('/reset_password', methods=['POST', 'GET'])
+def reset_password():
+    msg = ''
+    if request.method == "POST":
+        #get information 
+        email = request.form['email']
+        old_password = request.form['old_password']
+        new_password = request.form['new_password']
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM tb_user WHERE email = %s and user_password = %s' , (email, old_password))
+        account = cursor.fetchone()
+        if not account:
+            msg = "Unable to reset password"
+            return render_template('reset_password.html',msg=msg)
+        else:
+            msg = "Success!"
+            cursor.execute('UPDATE tb_user SET user_password = %s, didtheychangepass = %s WHERE user_id = %s' , (new_password, '1' , account['user_id']))
+            mysql.connection.commit()
+            return render_template('reset_password.html',msg=msg)
+    return render_template('reset_password.html')
+
+#appeal a rejection 
+@app.route("/appeal", methods=['GET', 'POST'])  
+def appeal():
+    msg = ''
+    if request.method == "POST":
+        username = request.form['username']
+        email = request.form['email']
+        interest = request.form['interest']
+        credential = request.form['credential']
+        reference = request.form['reference']
+        message = request.form['message']
+
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM tb_user WHERE email = %s', (email,))
+        account = cursor.fetchone()
+        cursor.execute('SELECT * FROM tb_applied WHERE email = %s',(email,))
+        applied = cursor.fetchone()
+
+        if account or applied:
+            msg = "You are already in the system - please check your email for a message from Whiteboard"
+            return render_template("appeal.html", msg=msg)
+        else:
+            cursor.execute("INSERT INTO tb_applied (username, email, interest, credential, reference, message)"
+                               " VALUES (%s, %s, %s, %s, %s, %s)", (username, email, interest, credential, reference, message))
+            mysql.connection.commit()
+            msg = "Your appeal will be shortly reviewed"
+            return render_template('appeal.html', msg=msg)
+    return render_template('appeal.html')
 
 
 # this will be the home page, only accessible for loggedin users
@@ -135,6 +239,7 @@ def add_reply():
         return redirect(url_for('into_reply', post_id=session['post_id']))
 
 
+
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
     # Output message if something goes wrong...
@@ -149,26 +254,27 @@ def login():
         cursor.execute('SELECT * FROM tb_user WHERE email = %s AND user_password = %s', (email, password))
         # Fetch one record and return result
         account = cursor.fetchone()
-        if email and password == 'admin':
-            return redirect(url_for('admin'))
         # If account exists in accounts table in out database
-        elif account:
+        if account:
             # Create session data, we can access this data in other routes
             session['loggedin'] = True
             session['user_id'] = account['user_id']
             session['username'] = account['user_name']
-            # check if user is a new user
-            cursor.execute('SELECT * FROM tb_profile WHERE user_id = %s', [session['user_id']])
-            # if user is not a new user
-            user_exist = cursor.fetchone()
-            if user_exist:
+            if account['didtheychangepass'] == 0:
+                return(redirect(url_for("reset_password")))
+            else:
+                # check if user is a new user
+                cursor.execute('SELECT * FROM tb_profile WHERE user_id = %s', [session['user_id']])
+                # if user is not a new user
+                user_exist = cursor.fetchone()
+                if user_exist:
+                    # go profile page
+                    return redirect(url_for('profile'))
+                # otherwise insert data into table profile: user_id, user_type, user_status, user_scores
+                cursor.execute('INSERT INTO tb_profile (user_id) VALUES (%s)', [session['user_id']])
+                mysql.connection.commit()
                 # go profile page
                 return redirect(url_for('profile'))
-            # otherwise insert data into table profile: user_id, user_type, user_status, user_scores
-            cursor.execute('INSERT INTO tb_profile (user_id) VALUES (%s)', [session['user_id']])
-            mysql.connection.commit()
-            # go profile page
-            return redirect(url_for('profile'))
         else:
             # Account doesnt exist or username/password incorrect
             msg = 'Incorrect email/password!'

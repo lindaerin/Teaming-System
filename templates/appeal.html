@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+{% block title %}WhiteBoard Appeal{% endblock %}
+{% block content %}
+		<div class="register">
+			<h1>Appeal your rejection!</h1>
+			<!-- <div class="links">
+				<a href="{{ url_for('login') }}">Login</a>
+				<a href="{{ url_for('register') }}">Register</a>
+			</div>-->
+			<form action="{{ url_for('appeal') }}" method="post" autocomplete="off">
+				<label for="username">
+					<i class="fas fa-user"></i>
+				</label>
+				<input type="text" name="username" placeholder="Name" id="username" required>
+				
+				<label for="email">
+					<i class="fas fa-envelope"></i>
+				</label>
+				<input type="email" name="email" placeholder="Email" id="email" required>
+
+				<label for="interest">
+					<i class="fas fa-user"></i>
+				</label>
+				<input type="text" name="interest" placeholder="Interest" id="interest" required>
+
+				<label for="credential">
+					<i class="fas fa-user"></i>
+				</label>
+				<input type="text" name="credential" placeholder="Credential" id="credential" required>
+
+				<label for="reference">
+					<i class="fas fa-user"></i>
+				</label>
+				<input type="text" name="reference" placeholder="Reference or N/A" id="reference" required>
+
+				<label for="message">
+					<i class="fas fa-user"></i>
+				</label>
+				<input type="text" name="message" placeholder="Explain your case." id="message" required>
+
+				<div class="msg">{{ msg }}</div>
+				<input type="submit" value="Submit">
+			</form>
+		</div>
+{% endblock %}

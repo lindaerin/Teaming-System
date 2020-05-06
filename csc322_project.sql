@@ -11,6 +11,7 @@ CREATE TABLE tb_applied (
     interest VARCHAR(50) NOT NULL,
     credential VARCHAR(50) NOT NULL,
     reference VARCHAR(50) NOT NULL,
+    message text, 
 	PRIMARY KEY (user_id)
 	);
     
@@ -26,6 +27,7 @@ CREATE TABLE tb_user (
     user_name VARCHAR(50) NOT NULL,
     user_password VARCHAR(50) NOT NULL ,
 	email VARCHAR(100) NOT NULL ,
+    didtheychangepass BOOLEAN NOT NULL DEFAULT 0 ,
     interest VARCHAR(50) ,
     credential VARCHAR(50),
 	PRIMARY KEY (user_id)
@@ -34,18 +36,20 @@ CREATE TABLE tb_user (
 -- setting user_id auto increment from 100
 ALTER TABLE tb_user AUTO_INCREMENT = 100;
 
-insert into tb_user (user_name, user_password,  email) values 
-('admin', 'admin', 'admin'),
-('test1', '1', 'www.111@111.com'),
-('test2','1','www.222@222.com'),
-('test3','1', 'www.333@333.com'), 
-('test4','1', 'www.444@444.com');
+insert into tb_user (user_name, user_password,  email, didtheychangepass) values 
+('admin', 'admin','admin' ,'1'),
+('test1', '1', 'www.111@111.com' , '0'),
+('test2','1','www.222@222.com' ,'0'),
+('test3','1', 'www.333@333.com', '0'), 
+('test4','1', 'www.444@444.com','0'),
+('Bob','1', 'bob@email.com' , '0' ),
+('Jane', '1', 'jane@email.com' , '0'),
+('CSGod', '1', 'h3ckz@email.com', '0');
 
 
 CREATE TABLE tb_blacklist ( 
-	user_id INT AUTO_INCREMENT,
-	foreign key (user_id) references tb_user (user_id)
-	);
+    email VARCHAR(100) NOT NULL 
+    );
 
 -- create table profile
 create table tb_profile (
