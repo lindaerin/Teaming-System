@@ -83,19 +83,6 @@ def home():
                    ' tb_post.user_id = tb_user.user_id order by -post_time')
     # Fetch all post records and return result
     post = cursor.fetchall()
-    # count replied number for each post
-    for i in range(len(post)):
-        print("post", post[i]['post_id'])
-        cursor.execute('SELECT COUNT(post_id) FROM tb_reply WHERE post_id =%s', [post[i]['post_id']])
-        count = cursor.fetchone()
-        post[i]['replied_num'] = count.get('COUNT(post_id)')
-
-    # sorted by the replied number to determine which post has the most replies
-    post = sorted(post, key=lambda post: (post['replied_num']), reverse=True)
-    # flag general post, since we need to show the top 3 rated post, we add the flag at the 4th post
-    if len(post) > 3:
-        post[3]['flag'] = 1
-    print('post', post)
     if post:
         return render_template('index.html', post=post)
     return render_template('index.html')
@@ -106,17 +93,14 @@ def home():
 @login_required
 def into_reply(post_id):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT tb_post.*, tb_user.user_name FROM tb_post INNER JOIN tb_user ON'
-                   ' tb_post.user_id = tb_user.user_id WHERE tb_post.post_id = %s', (post_id,))
+    cursor.execute('SELECT * FROM tb_post WHERE post_id = %s', (post_id,))
     posted = cursor.fetchone()
     # join table reply and table user to get reply information
     cursor.execute('SELECT tb_reply.*, tb_user.user_name FROM tb_reply INNER JOIN tb_user ON '
                    'tb_user.user_id = tb_reply.user_id WHERE tb_reply.post_id = %s order by -reply_time', (post_id,))
     reply = cursor.fetchall()
-    # declare the reply_number
-    reply_number = len(reply)
     session['post_id'] = posted['post_id']
-    return render_template('reply.html', posted=posted, reply=reply, reply_number=reply_number)
+    return render_template('reply.html', posted=posted, reply=reply)
 
 
 # reply feature
@@ -391,49 +375,7 @@ def into_group(group_id):
                    'ON tb_group_members.user_name = tb_user.user_name WHERE'
                    ' tb_group_members.group_id = %s', (group_id,))
     group_members = cursor.fetchall()
-    session['group_id'] = group_id
-    cursor.execute('SELECT tb_chat.*, tb_user.user_name FROM tb_chat INNER JOIN tb_user ON'
-                   ' tb_user.user_id = tb_chat.user_id WHERE tb_chat.group_id = %s', (group_id,))
-    chat = cursor.fetchall()
-    # get all group polls if there exists any
-    cursor.execute('SELECT * from tb_poll where group_id = %s', (group_id,))
-    polls = cursor.fetchall()
-    poll_id_data = []
-    poll_ids = ''
-    # grab all group poll ID
-    for poll in polls:
-        poll_id_data.append(poll['poll_id'])
-        poll_ids += str(poll['poll_id']) + ','
-
-    # concatenate poll.optionText together grouped by poll_id
-    cursor.execute('select tb_group.group_id, tb_poll.poll_id,'
-                   ' tb_poll.poll_title, tb_poll.poll_body, group_concat(optionText)'
-                   ' from tb_group join tb_poll on tb_group.group_id = tb_poll.group_id join'
-                   ' tb_poll_options on tb_poll.poll_id = tb_poll_options.poll_id'
-                   ' where tb_poll.poll_id in (select poll_id from tb_poll where poll_id'
-                   ' NOT IN (select poll_id from tb_poll_responses where tb_poll_responses.user_id = %s)'
-                   ' and group_id = %s) group by poll_id', (session['user_id'], group_id,))
-    all_options = cursor.fetchall()
-    if all_options:
-        # attempt to traverse through group_concat(optionText)
-        for i in range(0, len(all_options)):
-            # print(all_options[i]['group_concat(optionText)'])
-            current_poll_option = all_options[i]['group_concat(optionText)'].split(',')
-            all_options[i]['group_concat(optionText)'] = all_options[i]['group_concat(optionText)'].split(',')
-
-    else:
-        all_options = []
-
-    # get user's voted polls information/data
-    cursor.execute('select tb_poll.poll_title, tb_poll.poll_body, tb_poll.poll_id,'
-                   ' tb_poll_options.optionText from tb_poll join tb_poll_options on'
-                   ' tb_poll.poll_id = tb_poll_options.poll_id join tb_poll_responses'
-                   ' on tb_poll_options.option_id = tb_poll_responses.option_id where'
-                   ' tb_poll_responses.user_id = %s and tb_poll.group_id = %s', (session['user_id'], group_id,))
-    voted_polls = cursor.fetchall()
-
-    return render_template('group.html', group=group, group_members=group_members, chat=chat, voted_polls=voted_polls,
-                           polls=all_options)
+    return render_template('group.html', group=group, group_members=group_members)
 
 
 # invite feature
@@ -462,67 +404,6 @@ def invite(group_id):
         cursor.execute('INSERT INTO tb_group_members (group_id, user_name) VALUES (%s, %s)', (group_id, user_name))
         mysql.connection.commit()
         return redirect(url_for('into_group', group_id=group_id))
-
-
-@app.route('/into_group/<group_id>")', methods=['POST'])
-@login_required
-def chat(group_id):
-    if request.method == 'POST':
-        # Create variables for easy access
-        chat_content = request.form['chat_content']
-        # Check if account exists using MySQL
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('INSERT INTO tb_chat (user_id, group_id, chat_content) VALUES (%s, %s, %s)',
-                       (session['user_id'], group_id, chat_content))
-        mysql.connection.commit()
-        return redirect(url_for('into_group', group_id=group_id))
-
-
-@app.route('/group/<group_id>/create-poll', methods=['GET', 'POST'])
-def create_poll(group_id):
-    if request.method == 'POST':
-        title = request.form['poll-title']
-        question = request.form['poll-question']
-        option = request.form.getlist('poll-option')
-        option = ','.join(option)
-
-        # ['option 1', 'option 2']
-
-        # store options into tb_poll_options
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        # insert poll into tb_poll
-        cursor.execute("INSERT INTO tb_poll (poll_title, poll_body, created_by, group_id)"
-                       " VALUES (%s, %s, %s, %s)", (title, question, session['user_id'], group_id))
-
-        # grab newly created poll_id
-        cursor.execute("SELECT LAST_INSERT_ID()")
-        new_poll_id = cursor.fetchone()
-        new_poll_id = new_poll_id['LAST_INSERT_ID()']
-
-        # insert poll options into tb_poll_options
-        cursor.callproc('insert_poll_options', [option, new_poll_id])
-        mysql.connection.commit()
-
-        return redirect(url_for('into_group', group_id=group_id))
-
-
-@app.route('/group/<group_id>/poll-vote', methods=['POST'])
-def poll_vote(group_id):
-    if request.method == 'POST':
-        if 'submit-vote' in request.form:
-            selected_vote = request.form['poll-option']
-            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-            # get poll_id and option_id from poll_option
-            cursor.execute('SELECT poll_id, option_id from tb_poll_options WHERE optionText = %s', (selected_vote,))
-            poll_option_details = cursor.fetchall()
-            cursor.execute("INSERT INTO tb_poll_responses (poll_id, option_id, user_id)"
-                           " VALUES (%s, %s, %s)", (poll_option_details[0]['poll_id'],
-                                                    poll_option_details[0]['option_id'], session['user_id']))
-
-            mysql.connection.commit()
-
-            return redirect(url_for('into_group', group_id=group_id))
 
 
 if __name__ == '__main__':
