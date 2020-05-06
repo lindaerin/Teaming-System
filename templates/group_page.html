@@ -234,7 +234,7 @@
                 </div>
             </form>
             {% endif %}
-            <form action="{{ url_for('close_group') }}" method="get">
+            <form action="{{ url_for('close_group', group_name=group.group_name) }}" method="get">
                 <button type="submit" class="btn btn-outline-danger">Close Group</button>
             </form>
 

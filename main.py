@@ -624,10 +624,31 @@ def poll_vote(group_name):
 
             return redirect(url_for('group_page', group_name=group_name))
 
-@app.route('/group/close', methods=['GET','POST'])
-def close_group():
+@app.route('/group/<group_name>/close', methods=['GET','POST'])
+def close_group(group_name):
     if request.method == 'GET':
-        return render_template('close_group.html')
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        # get list of user_id in group (given group_name)
+        cursor.execute('select tb_user.user_id, tb_user.user_name from tb_user join tb_group_members on tb_user.user_id = tb_group_members.user_id join tb_group on tb_group_members.group_id = tb_group.group_id where tb_group.group_name =%s', (group_name,))
+        group_members = cursor.fetchall()
+        # print(group_members)
+
+        return render_template('close_group.html', group_name=group_name, group_members=group_members)
+
+    else:
+        # close_group_data = request.json
+        open_reason = request.json['openReason']
+        close_reason = request.json['closeReason']
+        userRatings = request.json['userRatings']
+
+        print(request.json)
+
+        # iterate through user each user in group - paired with userRating's index
+        # insert i = 0, user_id : userRatings in tb_user_evaluation table
+
+        return redirect(url_for('group_page'))
+
+
 
 
 @app.errorhandler(404)

@@ -19,9 +19,108 @@
      {% endwith %}
  </div>
 
+    <div class="content">
+        <h2 class="text-center">Close Group Evaluation</h2>
+        <form action="{{ url_for('close_group', group_name=group_name) }}" method="post" id="closeGroupForm">
+            <div class="close-group-form__container container text-center">
+                <div class="row">
+                    <div class="close-group-form__content col-lg-12">
+                        <div class="form-group">
+                             <label for="open_reason">Reason for Forming Group</label>
+                             <input type="text" name="open" class="form-control" id="open_reason" placeholder="" required>
+                        </div>
+                    </div>
+                </div>
 
-<h2 class="text-center">Close Group Form</h2>
-<div class="main">
-    <p>Close Group Form Here</p>
-</div>
+                <div class="row">
+                    <div class="close-group-form__content col-lg-12">
+                        <div class="form-group">
+                             <label for="close_reason">Reason for Closing Group</label>
+                             <input type="text" name="close" class="form-control" id="close_reason" placeholder="" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    {% for user in group_members %}
+                        <div class="form-group col-lg-6">
+                            <div class="ratings">
+                                <span class="fas fa-star"></span>
+                                <span class="fas fa-star"></span>
+                                <span class="fas fa-star"></span>
+                                <span class="fas fa-star"></span>
+                                <span class="fas fa-star"></span>
+                            </div>
+
+                             <label for="user-rating">Rate Your Group Mate</label>
+                             <p> {{ user.user_name }}</p>
+                             <input type="text" class="form-control" id="user-rating" placeholder="">
+                        </div>
+                    {% endfor %}
+
+                </div>
+
+                <div class="container text-center">
+                        <button type="submit" class="btn btn-primary">Close Group</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script>
+    const stars = document.getElementsByClassName('fas fa-star');
+
+    const starRating = document.querySelectorAll('.ratings');
+
+    let userRating = {};
+
+    for(let i = 0; i < starRating.length; i++){
+        for(let j = 0; j < starRating[i].children.length; j++){
+            starRating[i].children[j].addEventListener('mouseover', function(){
+                {#console.log(starRating[i].children[j]);#}
+
+                for(let k = 0; k < starRating[i].children.length; k++){
+                    starRating[i].children[j].classList.remove('fas');
+                    starRating[i].children[j].classList.add('far');
+                    {#starRating[i].children[j].classList.add('far');#}
+                }
+
+                for(let k = 0; k <= j; k++){
+                    starRating[i].children[j].classList.add('fas');
+                }
+            })
+
+            starRating[i].children[j].addEventListener('click', function(){
+                let currentRating = j + 1;
+
+                for(let p = 0; p < j + 1; p++){
+                    starRating[i].children[p].style.color = 'orange';
+                }
+                userRating[i] = currentRating;
+
+                console.log(userRating);
+            })
+        }
+    }
+
+
+    $('#closeGroupForm').submit(function(){
+       event.preventDefault();
+        //send userRating data array to flask route for data handling
+        $.ajax({
+            url: '/group/close',
+            contentType: "application/json;charset=utf-8",
+            type: 'POST',
+            data: JSON.stringify({
+                openReason: $('#open_reason').val(),
+                closeReason: $('#close_reason').val(),
+                userRatings: userRating
+            }),
+            success: function(response){
+                alert('data successfully sent!');
+            }
+        });
+
+    });
+    </script>
 {% endblock %}
+

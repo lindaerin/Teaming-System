@@ -308,5 +308,13 @@ body.loggedin {
 		right: 20%;
 	}
 
+	/* CLOSE GROUP PAGE	*/
+	.close-group-form__container {
+		margin-top: 8%;
+	}
+
+	.ratings .far {
+		cursor: pointer;
+	}
 
 
