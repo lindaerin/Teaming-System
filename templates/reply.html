@@ -13,7 +13,7 @@
         <hr>
         <p class="post-content">{{ posted.post_content }}</p>
         <hr>
-        <h4 style="margin:10px 10px;">Reply</h4>
+        <h4 style="margin:10px 10px;">Reply( {{ reply_number }} )</h4>
             <form action="{{ url_for('add_reply') }}" method="post">
                 <div class="form-group">
                 <textarea name="reply_content"  rows="7" placeholder="Enter Reply Here..."

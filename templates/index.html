@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
- <div class="show-message" style="text-align: center; width: 360px; margin:0 auto;">
+ <div class="show-message" style="text-align: center; width: 360px; margin:0 auto;">  <!-- flash error messages -->
      {% with messages = get_flashed_messages() %}
      {% if messages %}
      {% for message in messages %}
@@ -22,8 +22,13 @@
 
 <h2>This is home page</h2>
 <div class="main">
-{% for ps in post %}
-   <ul>
+{% for ps in post %}    <!--loop to show all posts-->
+    {% if ps.flag %}    <!-- if flag in the post( the 4th post) , show below messages -->
+        <h6>===========================================================================</h6>
+        <h4 style="text-align: center">General Post ↓↓↓</h4>
+        <h6>===========================================================================</h6>
+    {% endif %}
+   <ul>             <!-- post part -->
         <li>
             <div class="post-group">
                 <p class="post-title"><a href="{{ url_for('into_reply', post_id=ps.post_id) }}">
@@ -37,6 +42,6 @@
             </div>
         </li>
    </ul>
-{% endfor %}
+{% endfor %}  <!-- end loop -->
 </div>
 {% endblock %}
