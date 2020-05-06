@@ -20,7 +20,7 @@
  </div>
 
 
-<h2 class="text-center">Homepage</h2>
+<h2 class="text-center">3 Top rated Post</h2>
 <div class="main">
 {% for ps in post %}    <!--loop to show all posts-->
     {% if ps.flag %}    <!-- if flag in the post( the 4th post) , show below messages -->
@@ -35,7 +35,7 @@
                     {{ ps.post_title }}</a></p>
                 <P class="post-content">{{ ps.post_content }}</P>
                 <div class="post-info">
-                    <span class="post-author"><a href="{{ url_for('public_profile', user_name=ps.user_name) }}">
+                    <span class="post-author"><a href="{{ url_for('poster_profile', poster_id=ps.user_id) }}">
                         {{ ps.user_name }}</a></span>
                     <span class="post-time">{{ ps.post_time }}</span>
                 </div>

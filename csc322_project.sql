@@ -102,8 +102,91 @@ create table tb_group (
   
 ALTER TABLE tb_group AUTO_INCREMENT = 1000;  
 
+insert into tb_group (group_id, group_name, group_describe, user_id) values
+(1000, 'GROUP_TEST', 'This is for group test', '104');  
+
 create table tb_group_members (
 	group_id int,
     user_name varchar(50),
     foreign key (group_id) references tb_group (group_id)
-)
+);
+
+insert into tb_group_members (group_id, user_name) values
+(1000, 'test4');
+
+
+-- create table chat
+create table tb_chat (
+	user_id int,
+    group_id int,
+    chat_content text,
+    chat_time timestamp default current_timestamp,
+    foreign key (user_id) references tb_user (user_id),
+    foreign key (group_id) references tb_group (group_id)
+);
+
+-- POLLING SYSTEM
+create table tb_poll (
+	poll_id int auto_increment,
+    poll_title varchar(50),
+    poll_body varchar(100),
+    poll_status int default 1,
+    created_by int,
+    poll_creation timestamp default current_timestamp,
+    group_id int,
+    primary key (poll_id),
+    foreign key (group_id) references tb_group (group_id),
+    foreign key (created_by) references tb_user (user_id)
+);
+
+create table tb_poll_options (
+	option_id int auto_increment,
+    poll_id int,
+    optionText varchar(50),
+    foreign key (poll_id) references tb_poll (poll_id),
+    primary key (option_id)
+);
+
+create table tb_poll_responses (
+	response_id int auto_increment,
+    poll_id int,
+    user_id int,
+    option_id int,
+    primary key (response_id),
+    foreign key (poll_id) references tb_poll (poll_id),
+    foreign key (user_id) references tb_user (user_id),
+    foreign key (option_id) references tb_poll_options (option_id)
+);
+
+-- insert a simple poll into a group
+ insert into tb_poll (poll_title, poll_body, group_id, created_by) values 
+ ('Programming Language', 'What is your favorite programming language?', 1000, 102);
+
+-- insert poll options
+DROP procedure IF EXISTS `insert_poll_options`;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_poll_options`(IN POLL_OPTIONS varchar(1000), IN NEWPOLL int)
+BEGIN
+	SET @myArrayOfOptions = POLL_OPTIONS;
+    WHILE(LOCATE(',', @myArrayOfOptions) > 0) DO
+            SET @value = SUBSTRING_INDEX(@myArrayOfOptions,',',1);
+            IF (LENGTH(@myArrayOfOptions) > LENGTH(@value) +2)  THEN
+                SET @myArrayOfOptions= SUBSTRING(@myArrayOfOptions, LENGTH(@value) + 2);
+                INSERT INTO `tb_poll_options` (poll_id, optionText) VALUES(NEWPOLL, @value);
+            ELSE
+                INSERT INTO `tb_poll_options` (poll_id, optionText) VALUES(NEWPOLL, @value);
+                -- to end while loop
+                SET @myArrayOfOptions=  '';
+            END IF;
+            IF LENGTH(@myArrayOfOptions) > 0 AND LOCATE(',', @myArrayOfOptions) = 0 then
+                -- Last entry was withóut comma
+                INSERT INTO `tb_poll_options` (poll_id, optionText) VALUES(NEWPOLL, @myArrayOfOptions);
+            END IF;
+    END WHILE;
+END$$
+
+DELIMITER ;
+
+CALL insert_poll_options('Python,JavaScript,Ruby,Go,C++', 1);
+

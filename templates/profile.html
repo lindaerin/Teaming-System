@@ -22,24 +22,24 @@
     <div class="content">
 
 
-    {% if public_profile %}
-    <h2>{{ public_profile.user_name }}'s Profile</h2>
+    {% if poster_account %}
+    <h2>{{ poster_account.user_name }}'s Profile</h2>
         <table>
             <tr>
                 <td><b>Username:</b></td>
-                <td>{{ public_profile.user_name }}</td>
+                <td>{{ poster_account.user_name }}</td>
             </tr>
             <tr>
                 <td><b>User Type:</b></td>
-                <td>{{ public_profile.user_type }}</td>
+                <td>{{ poster_account.user_type }}</td>
             </tr>
             <tr>
                 <td><b>Reputation:</b></td>
-                <td>{{ public_profile.user_scores }}</td>
+                <td>{{ poster_account.user_scores }}</td>
             </tr>
             <tr>
                 <td><b>Email:</b></td>
-                <td>{{ public_profile.email }}</td>
+                <td>{{ poster_account.email }}</td>
             </tr>
         </table>
 
@@ -67,7 +67,7 @@
         <h4 style="color: #4a536e; font-size: 22px;">My Groups</h4>
         {% if group_info %}
             {% for name in group_info %}
-                 <a href="{{ url_for('group_page', group_name=name.group_name) }}">
+                 <a href="{{ url_for('into_group', group_id=name.group_id) }}">
                 <button class="btn btn-primary" style="font-size: 15px; width: 200px;
                  margin:10px 20px; word-break: break-all; height: 100px; ">
                         {{ name.group_name }}
@@ -90,16 +90,11 @@
                     <div class="modal-body">
 
                         <div class="form-group" style="box-sizing: border-box;">
-                            <input type="text" name="group_name" value="{{ group_name }}" placeholder="Enter Group Name" required
+                            <input type="text" name="group_name" placeholder="Enter Group Name" required
                                    class="form-control">
                         </div>
-
                         <div class="form-group">
-                            <input type="text" data-role="tagsinput" name="invite" value="{{ invite }}" id="invite" placeholder="Invite Team Members" class="form-control">
-                        </div>
-
-                        <div class="form-group">
-                            <textarea name="description" value="{{ description }}"  rows="7" placeholder="Enter Group Description Here..."
+                            <textarea name="describe"  rows="7" placeholder="Enter Group Description Here..."
                                     required  class="form-control"></textarea>
                             </div>
                     </div>
@@ -116,8 +111,6 @@
                 </div><!-- /.modal-dialog -->
             </div><!-- /.modal -->
         </form>
-
-
 
     {% endif %}
          <h2>Post History</h2>
