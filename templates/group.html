@@ -46,15 +46,16 @@
     <div id="Polls" class="tabcontent">
         {#  Create Poll Form  #}
         <div class="poll-parent-container container" style="padding: 0;">
-        <button type="button" class="btn btn-info" onClick="togglePollForm()">Create Poll</button>
+        <button type="button" class="btn btn-info" onClick="togglePollForm()" style="position:relative;
+                             right:140px;">Create Poll</button>
 
             <div class="row poll-form-container d-flex col-md-6 mx-auto" id="pollFormContainer"
                  style="padding: 0;">
                 <div class="poll-form-content col-md-12" style="width: 800px; padding: 0;
-                position:relative; right:100px; padding-top: 10px">
+                position:relative; right:120px; padding-top: 10px">
                 <form id="createPollForm" class="col-md-8" action="{{ url_for('create_poll', group_id=group.group_id) }}"
                       method="post">
-                    <div class="form-input-content" id="formInputContent" style="width: 350px; padding: 0">
+                    <div class="form-input-content" id="formInputContent" style="width: 320px; padding: 0">
                           <div class="form-group">
                             <input type="text" class="form-control" id="poll-title"
                                    name="poll-title" placeholder="Poll Title" required>
@@ -72,7 +73,7 @@
                             <button type="button"class="btn btn-link" onClick="addOptionField()"
                                     id="addMoreBtn">Add More Option</button>
                             <button type="submit" class="btn btn-primary" style="position:relative;
-                             left:120px;">Create</button>
+                             left:30px;">Create</button>
                         </div>
                     </div>
                 </form>
@@ -92,7 +93,7 @@
                           <div class="card-body float-left">
                             <p class="card-text">{{ poll.poll_body }}</p>
                           </div>
-                          <div class="card-body float-right" style="position:relative; left:40px;">
+                          <div class="card-body float-right" style="position:relative; left:20px;">
                               <button type="button" class="btn btn-primary submitPoll-btn" onClick="">Respond</button>
                           </div>
                         </div>
@@ -107,7 +108,9 @@
                                                     <input type="radio" id="{{ option }}"
                                                            name="poll-option" value="{{ option }}">
                                                     <label class="poll-option-label"
-                                                           for="{{ option }}">{{ option }}</label>
+                                                           for="{{ option }}"
+                                                           style="padding-left: 0px; margin-right:30px;">
+                                                        {{ option }}</label>
                                                 </div>
                                             {% endfor %}
                                             </div>
@@ -334,7 +337,6 @@
                 </tr>
             </table>
         </div> <!-- end content class-->
-
     </div> <!-- left side end-->
       <div class="right">
           <div class="dui-container" style="min-height: 78%; border-left: 2px solid black; position: absolute;">

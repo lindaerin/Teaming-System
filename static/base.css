@@ -77,3 +77,20 @@ ul li {
 .reply-content {
             margin-left: 10px;
 }
+
+
+.left {
+    float: left;
+    width: 40%;
+    height: 100%;
+    background-color: white;
+
+}
+
+.right {
+    word-break: break-all;
+    float: left;
+    width: 59%;
+    height: 100%;
+    background-color: white;
+}
