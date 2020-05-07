@@ -243,9 +243,31 @@ def profile():
         post_history = cursor.fetchall()
         # get all the groups' information that the user
         cursor.execute('SELECT tb_group.*, tb_group_members.user_id FROM tb_group_members INNER JOIN tb_group'
-                       ' ON tb_group.group_id = tb_group_members.group_id AND tb_group_members.user_id = %s',
-                       [session['user_id']])
+                       ' ON tb_group.group_id = tb_group_members.group_id AND tb_group_members.user_id = %s AND tb_group.group_status=%s',
+                       ( [session['user_id']], 'active',))
         group_info = cursor.fetchall()
+
+        # get all user group evaluations
+        cursor.execute('SELECT evaluation_score from tb_user_evaluations where user_id = %s', (session['user_id'],))
+        user_scores = cursor.fetchall()
+        print(user_scores)
+
+        user_score = 0
+        total_score = 0
+
+        # if evaluations_scores exist, add all of them up and divide by length of user_scores
+        if(user_scores):
+            for i in range(0, len(user_scores)):
+                total_score += user_scores[i]['evaluation_score']
+
+            user_score = int(total_score / len(user_scores))
+            print(user_score)
+
+            # update user_score in tb_user
+            cursor.execute('UPDATE tb_profile SET user_scores = %s WHERE user_id = %s', (user_score, session['user_id']))
+
+            mysql.connection.commit()
+
         # Show the profile page with account info
         return render_template('profile.html', account=account, post_history=post_history, group_info=group_info)
     # User is not loggedin redirect to login page
@@ -453,6 +475,7 @@ def create_group():
             mysql.connection.commit()
             # session['group_members'] = invite
 
+
             return redirect(url_for('group_page', group_name=group_name))
 
     return render_template('group.html')
@@ -556,9 +579,10 @@ def group_page(group_name):
 
             # print('------------NEW ALTERED VOTED POLL DATA_----------------')
             # print(voted_polls)
-        cursor.execute('SELECT group_status FROM tb_group where group_id = %s', (group_id,))
-        group_status = cursor.fetchone()
-        group_status = group_status['group_status']
+        # cursor.execute('SELECT group_status FROM tb_group where group_id = %s', (group_id,))
+        # group_status = cursor.fetchone()
+        # group_status = group_status['group_status']
+        group_status = 'active'
 
 
         return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options, voted_polls=voted_polls, group_status=group_status)
@@ -664,14 +688,15 @@ def close_group(group_name):
         # set group_status in tb_group given group_name to 'inactive'
         cursor.execute('UPDATE tb_group SET group_status = %s WHERE group_id = %s', ('inactive', group_id,))
 
+        # insert project evaluation into tb_project_evaluations
+        cursor.execute('INSERT INTO tb_project_evaluations (project_open_reason, project_close_reason, group_id) VALUES (%s, %s, %s)', (open_reason, close_reason, group_id,))
+
         mysql.connection.commit();
 
         return jsonify(result)
 
 
     else:
-        # print(group_members)
-
         return render_template('close_group.html', group_name=group_name, group_members=group_members)
 
 

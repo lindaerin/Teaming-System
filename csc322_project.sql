@@ -67,6 +67,9 @@ insert into tb_profile (user_id, user_type, user_scores) values
 (102, 'Ordinary', 0),
 (103, 'Ordinary', 0),
 (104, 'Ordinary', 0),
+(105, 'Ordinary', 0),
+(106, 'Ordinary', 0),
+(107, 'Ordinary', 0),
 (108, 'VIP'),
 (109, 'VIP');
 
@@ -245,8 +248,10 @@ CREATE TABLE tb_user_evaluations (
 -- create project evaluation system table
 CREATE TABLE tb_project_evaluations (
 	project_eval_id int auto_increment,
+    project_open_reason varchar(100) NOT NULL,
+    project_close_reason varchar(100) NOT NULL,
     group_id int NOT NULL,
-    project_rating int NOT NULL,
+    project_rating int default NULL,
     evaluator_id int default NULL,
     primary key (project_eval_id),
     foreign key (group_id) references tb_group(group_id),

@@ -90,6 +90,9 @@
             })
 
             starRating[i].children[j].addEventListener('click', function(){
+                for (let m = 0; m < starRating[i].children.length; m++){
+                    starRating[i].children[m].style.color = 'black';
+                }
                 let currentRating = j + 1;
 
                 for(let p = 0; p < j + 1; p++){
