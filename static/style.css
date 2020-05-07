@@ -207,7 +207,7 @@ body.loggedin {
 		padding-top: 10px;
 	}
 
-	#createPollForm {
+	#createPollForm, #createVoteForm {
 		margin: 0 auto;
 		display: none;
 	}

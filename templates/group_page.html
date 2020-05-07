@@ -49,6 +49,7 @@
     <div class="tab col-lg-6">
         <button class="tablinks" onclick="openTab(event, 'Posts')">Posts</button>
         <button class="tablinks" onclick="openTab(event, 'Polls')" id="defaultOpen">Polls</button>
+        <button class="tablinks" onclick="openTab(event, 'Group Votes')">Group Votes</button>
     </div>
 
     </div>
@@ -59,6 +60,54 @@
         <div id="Posts" class="tabcontent" style="right: 20%;">
             <p>I am a post section</p>
             <p>I am a post section</p>
+        </div>
+
+
+    </div>
+    </div>
+
+        <div class="tabcontent__container">
+    <div class="row">
+
+        <div id="Group Votes" class="tabcontent" style="right: 20%;">
+            <div class="poll-parent-container container">
+            {% if group_status == 'active' %}
+                <button type="button" class="btn btn-info" onClick="toggleVoteForm()">Create Group Vote</button>
+            {% endif %}
+
+            <div class="row poll-form-container d-flex col-md-12 mx-auto" id="voteFormContainer">
+                <div class="poll-form-content col-md-12">
+                <form id="createVoteForm" action="{{ url_for('create_groupvote', group_name=group.group_name) }}" class="col-md-12" method="post">
+                    <div class="form-input-content" id="formInputContent">
+                          <div class="form-group">
+                            <input type="text" class="form-control" id="groupvote-title" name="groupvote-title" placeholder="Group Vote Title" required>
+                          </div>
+                          <div class="form-group">
+                              <select class="form-control" name="voteType" onchange="selectGroupVoteType(this);">
+                                  <option selected>Choose Vote Type...</option>
+                                  <option class="voteType-user" name="vote-type" value="praise">Praise a User</option>
+                                  <option class="voteType-user" name="vote-type" value="warning">Give User a Warning</option>
+                                  <option class="voteType-user" name="vote-type" value="user_removal">Remove a User from Group</option>
+                                  <option class="voteType-group" name="vote-type" value="close_group">Close Group</option>
+                              </select>
+                          </div>
+
+                        <div class="form-group">
+                            <div id="form-group__user" style="display:none;">
+                                <input type="text" class="form-control" id="user_subject" name="user-subject" placeholder="Which User?">
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="btnContainer">
+                        <div class="text-align">
+                            <button type="submit" class="btn btn-primary">Create</button>
+                        </div>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
         </div>
 
 
@@ -333,6 +382,35 @@
             x.style.display = "none";
         }
 
+    }
+
+    function toggleVoteForm() {
+        var x = document.getElementById("createVoteForm");
+        if (x.style.display === ''){
+            x.style.display = 'none';
+        }
+        if (x.style.display === "none") {
+            x.style.display = "block";
+        } else {
+            x.style.display = "none";
+        }
+    }
+
+    function selectGroupVoteType(nameSelect)
+    {
+        console.log(nameSelect);
+        if(nameSelect){
+            console.log(nameSelect.value);
+            if(nameSelect.value == 'praise' || nameSelect.value == 'warning' || nameSelect.value == 'user_removal'){
+                document.getElementById("form-group__user").style.display = "block";
+            }
+            else{
+                document.getElementById("form-group__user").style.display = "none";
+            }
+        }
+        else{
+            document.getElementById("form-group__user").style.display = "none";
+        }
     }
 
 

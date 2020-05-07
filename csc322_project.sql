@@ -70,8 +70,8 @@ insert into tb_profile (user_id, user_type, user_scores) values
 (105, 'Ordinary', 0),
 (106, 'Ordinary', 0),
 (107, 'Ordinary', 0),
-(108, 'VIP'),
-(109, 'VIP');
+(108, 'VIP', 30),
+(109, 'VIP', 90);
 
 -- create table post
 create table tb_post (
@@ -114,6 +114,8 @@ ALTER TABLE tb_group AUTO_INCREMENT = 1000;
 create table tb_group_members (
 	group_id int,
     user_id int,
+    user_warnings int default 0,
+    user_praises int default 0,
     foreign key (group_id) references tb_group (group_id),
     foreign key(user_id) references tb_user(user_id)
 );
@@ -137,15 +139,15 @@ BEGIN
             SET @value = SUBSTRING_INDEX(@myArrayOfUsers,',',1);
             IF (LENGTH(@myArrayOfUsers) > LENGTH(@value) +2)  THEN
                 SET @myArrayOfUsers= SUBSTRING(@myArrayOfUsers, LENGTH(@value) + 2);
-                INSERT INTO `tb_group_members` VALUES(NEWGROUP, @value);
+                INSERT INTO `group_members` VALUES(NEWGROUP, @value);
             ELSE
-                INSERT INTO `tb_group_members` VALUES(NEWGROUP, @value);
+                INSERT INTO `group_members` VALUES(NEWGROUP, @value);
                 -- to end while loop
                 SET @myArrayOfUsers=  '';
             END IF;
             IF LENGTH(@myArrayOfUsers) > 0 AND LOCATE(',', @myArrayOfUsers) = 0 then
                 -- Last entry was withóut comma
-                INSERT INTO `tb_group_members` VALUES(NEWGROUP, @myArrayOfUsers);
+                INSERT INTO `group_members` VALUES(NEWGROUP, @myArrayOfUsers);
             END IF;
     END WHILE;
 END$$
@@ -156,6 +158,7 @@ CALL insert_members('101,103,102,100', 1001);
 CALL insert_members('102,101', 1003);
 CALL insert_members('103,101,102', 1000);
 CALL insert_members('103,101,100', 1002);
+
 
 -- POLLING SYSTEM
 create table tb_poll (
@@ -193,10 +196,10 @@ create table tb_poll_responses (
 );
 
 -- insert a simple poll into a group
-insert into tb_poll (poll_title, poll_body, group_id, created_by) values 
-('Programming Language', 'What is your favorite programming language?', 1000, 102),
-('Feature', 'What feature do you think is most important?', 1001, 103),
-('Meeting Times', 'When are you available to meet this week?', 1002, 101);
+-- insert into tb_poll (poll_title, poll_body, group_id, created_by) values 
+-- ('Programming Language', 'What is your favorite programming language?', 1000, 102),
+-- ('Feature', 'What feature do you think is most important?', 1001, 103),
+-- ('Meeting Times', 'When are you available to meet this week?', 1002, 101);
 
 
 -- insert poll options
@@ -225,9 +228,9 @@ END$$
 
 DELIMITER ;
 
-CALL insert_poll_options('Python,JavaScript,Ruby,Go,C++', 1);
-CALL insert_poll_options('Messaging,Notification,Styling', 2);
-CALL insert_poll_options('Monday after class,Tuesday 2pm,Wednesday after class', 3);
+-- CALL insert_poll_options('Python,JavaScript,Ruby,Go,C++', 1);
+-- CALL insert_poll_options('Messaging,Notification,Styling', 2);
+-- CALL insert_poll_options('Monday after class,Tuesday 2pm,Wednesday after class', 3);
 
 -- insert poll responses by group_members - vote reponses
 
@@ -258,3 +261,47 @@ CREATE TABLE tb_project_evaluations (
     foreign key (evaluator_id) references tb_user(user_id)
 );
 
+-- create group_vote table - not related to polls / user related votes
+CREATE TABLE tb_group_votes (
+	group_vote_id int auto_increment,
+    group_id int NOT NULL,
+    vote_subject varchar(50) NOT NULL,
+    user_subject int,
+    user_id int NOT NULL,
+    primary key (group_vote_id),
+    foreign key (group_id) references tb_group(group_id),
+    foreign key (user_id) references tb_user(user_id)
+);
+
+-- create report table where users, visitors, can report to SU for issues such with a user or group, etc
+CREATE TABLE tb_reports (
+	report_id int auto_increment,
+    report_type varchar(50) NOT NULL, -- issues relating to users, a group
+    reporter_id int NOT NULL,
+    user_id int,
+    group_id int,
+    primary key (report_id),
+    foreign key (reporter_id) references tb_user(user_id),
+    foreign key (user_id) references tb_user(user_id),
+    foreign key (group_id) references tb_group(group_id)
+);
+
+-- create appeals table where users can file for appeals to SU
+CREATE TABLE tb_appeals (
+	appeal_id int auto_increment,
+    appealer_id int NOT NULL,
+    appeal_type varchar(50) NOT NULL,
+    appeal_decision varchar(50) NOT NULL default 'Pending',
+    primary key (appeal_id),
+    foreign key (appealer_id) references tb_user(user_id)
+);
+
+-- create compliment table system
+CREATE TABLE tb_user_compliments (
+	compliment_id int auto_increment,
+    user_id int NOT NULL,
+    complimentor_id int NOT NULL,
+    primary key (compliment_id),
+    foreign key (user_id) references tb_user(user_id),
+    foreign key (complimentor_id) references tb_user(user_id)
+);

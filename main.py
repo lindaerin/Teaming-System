@@ -232,6 +232,27 @@ def profile():
     if 'loggedin' in session:
         # We need all the account info for the user so we can display it on the profile page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+        # get all user group evaluations
+        cursor.execute('SELECT evaluation_score from tb_user_evaluations where user_id = %s', (session['user_id'],))
+        user_scores = cursor.fetchall()
+        print(user_scores)
+
+        user_score = 0
+        total_score = 0
+
+        # if evaluations_scores exist, add all of them up and divide by length of user_scores
+        if (user_scores):
+            for i in range(0, len(user_scores)):
+                total_score += user_scores[i]['evaluation_score']
+
+            user_score = int(total_score / len(user_scores))
+            print(user_score)
+
+            # update user_score in tb_user
+            cursor.execute('UPDATE tb_profile SET user_scores = %s WHERE user_id = %s',
+                           (user_score, session['user_id']))
+
         # join table profile and table user to get user information: id, name, email, user_type, user_scores,
         cursor.execute('SELECT tb_profile.*, tb_user.user_name, tb_user.email'
                        ' FROM tb_user INNER JOIN tb_profile ON tb_profile.user_id = tb_user.user_id'
@@ -247,26 +268,9 @@ def profile():
                        ( [session['user_id']], 'active',))
         group_info = cursor.fetchall()
 
-        # get all user group evaluations
-        cursor.execute('SELECT evaluation_score from tb_user_evaluations where user_id = %s', (session['user_id'],))
-        user_scores = cursor.fetchall()
-        print(user_scores)
 
-        user_score = 0
-        total_score = 0
 
-        # if evaluations_scores exist, add all of them up and divide by length of user_scores
-        if(user_scores):
-            for i in range(0, len(user_scores)):
-                total_score += user_scores[i]['evaluation_score']
-
-            user_score = int(total_score / len(user_scores))
-            print(user_score)
-
-            # update user_score in tb_user
-            cursor.execute('UPDATE tb_profile SET user_scores = %s WHERE user_id = %s', (user_score, session['user_id']))
-
-            mysql.connection.commit()
+        mysql.connection.commit()
 
         # Show the profile page with account info
         return render_template('profile.html', account=account, post_history=post_history, group_info=group_info)
@@ -700,25 +704,42 @@ def close_group(group_name):
         return render_template('close_group.html', group_name=group_name, group_members=group_members)
 
 
+@app.route('/group/<group_name>/create-group-vote', methods=['GET', 'POST'])
+def create_groupvote(group_name):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    if request.method == 'POST':
+        cursor.execute('SELECT group_id from tb_group where group_name = %s', (group_name,))
+        group_id = cursor.fetchone()
+        group_id = group_id['group_id']
+
+        groupvote_title = request.form['groupvote-title']
+        groupvote_type = request.form['voteType']
+
+        print('-----------GROUP VOTE FORM SUBMISSION-----------')
+        print(groupvote_title, groupvote_type)
+
+        if groupvote_type =='close_group':
+            # insert group group-vote
+            cursor.execute('INSERT INTO tb_group_votes (group_id, vote_subject, user_id) VALUES (%s, %s, %s)',
+                           (group_id, groupvote_type, session['user_id']), )
+
+        user_subject = ''
+        if groupvote_type == 'praise' or groupvote_type == 'warning' or groupvote_type == 'user_removal':
+            user_subject = request.form['user-subject']
+            cursor.execute('SELECT user_id from tb_user where user_name = %s', (user_subject, ))
+            user_subject_id = cursor.fetchone()
+            user_subject_id = user_subject_id['user_id']
+
+            # insert user group-vote
+            cursor.execute('INSERT INTO tb_group_votes (group_id, vote_subject, user_subject, user_id) VALUES (%s, %s, %s, %s)', (group_id, groupvote_type, user_subject_id, session['user_id'],))
+
+
+        mysql.connection.commit();
 
 
 
-# @app.route('/group/<group_name>/closed', methods=['GET','POST'])
-# def closed(group_name):
-#     if request.method == 'POST':
-#         # close_group_data = request.json
-#         open_reason = request.json['openReason']
-#         close_reason = request.json['closeReason']
-#         userRatings = request.json['userRatings']
-#
-#         print(request.json)
-#         result = {'url': url_for('home')}
-#         return jsonify(result)
-#
-#         # iterate through user each user in group - paired with userRating's index
-#         # insert i = 0, user_id : userRatings in tb_user_evaluation table
-#
-#     return render_template('index.html')
+    return render_template('close_group.html', group_name=group_name)
+
 
 @app.errorhandler(404)
 def not_found(e):
