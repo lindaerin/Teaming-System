@@ -42,7 +42,9 @@ insert into tb_user (user_name, user_password,  email) values
 ('test4','1', 'www.444@444.com'),
 ('Bob','1', 'bob@email.com'),
 ('Jane', '1', 'jane@email.com'),
-('CSGod', '1', 'h3ckz@email.com');
+('CSGod', '1', 'h3ckz@email.com'),
+('ModErin', '1', 'vip@email.com'),
+('ModGod', '1', 'vip1@email.com');
 
 
 CREATE TABLE tb_blacklist ( 
@@ -64,7 +66,9 @@ insert into tb_profile (user_id, user_type, user_scores) values
 (101, 'Ordinary', 0),
 (102, 'Ordinary', 0),
 (103, 'Ordinary', 0),
-(104, 'Ordinary', 0);
+(104, 'Ordinary', 0),
+(108, 'VIP'),
+(109, 'VIP');
 
 -- create table post
 create table tb_post (
@@ -225,5 +229,27 @@ CALL insert_poll_options('Monday after class,Tuesday 2pm,Wednesday after class',
 -- insert poll responses by group_members - vote reponses
 
  
--- create group/project evaluation system table
+-- create groupmember user evaluation system table
+CREATE TABLE tb_user_evaluations (
+	user_eval_id int auto_increment,
+	group_id int NOT NULL,
+    rater_id int NOT NULL,
+    evaluation_score int NOT NULL,
+    user_id int NOT NULL,
+    foreign key (group_id) references tb_group(group_id),
+    foreign key (rater_id) references tb_user(user_id),
+    foreign key (user_id) references tb_user(user_id),
+    primary key (user_eval_id)
+);
+
+-- create project evaluation system table
+CREATE TABLE tb_project_evaluations (
+	project_eval_id int auto_increment,
+    group_id int NOT NULL,
+    project_rating int NOT NULL,
+    evaluator_id int default NULL,
+    primary key (project_eval_id),
+    foreign key (group_id) references tb_group(group_id),
+    foreign key (evaluator_id) references tb_user(user_id)
+);
 

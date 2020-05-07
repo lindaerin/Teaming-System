@@ -310,7 +310,8 @@ body.loggedin {
 
 	/* CLOSE GROUP PAGE	*/
 	.close-group-form__container {
-		margin-top: 8%;
+		margin-top: 4%;
+		margin-bottom: 8%;
 	}
 
 	.ratings .far {

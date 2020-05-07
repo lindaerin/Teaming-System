@@ -107,7 +107,7 @@
        event.preventDefault();
         //send userRating data array to flask route for data handling
         $.ajax({
-            url: '/group/close',
+            url: '/group/{{ group_name }}/close',
             contentType: "application/json;charset=utf-8",
             type: 'POST',
             data: JSON.stringify({
@@ -116,7 +116,11 @@
                 userRatings: userRating
             }),
             success: function(response){
-                alert('data successfully sent!');
+                console.log(response.url);
+                window.location.href = response.url
+            },
+            error: function(response){
+                alert(response);
             }
         });
 

@@ -5,7 +5,7 @@ from functools import wraps
 from collections import defaultdict
 
 import MySQLdb.cursors
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_mail import Mail
 from flask_mysqldb import MySQL
 
@@ -493,8 +493,8 @@ def group_page(group_name):
         desc = cursor.fetchone()
         team_desc = desc['group_describe']
 
-        print('-----------------GROUP DETAILS--------------')
-        print(group)
+        # print('-----------------GROUP DETAILS--------------')
+        # print(group)
 
         # get all group polls if there exists any
         cursor.execute('SELECT * from tb_poll where group_id = %s', (group_id,))
@@ -532,8 +532,8 @@ def group_page(group_name):
         # get user's voted polls information/data
         cursor.execute('select tb_poll.poll_title, tb_poll.poll_body, tb_poll.poll_id, tb_poll_options.optionText, tb_poll.vote_count, tb_poll.highest_vote from tb_poll join tb_poll_options on tb_poll.poll_id = tb_poll_options.poll_id join tb_poll_responses on tb_poll_options.option_id = tb_poll_responses.option_id where tb_poll_responses.user_id = %s and tb_poll.group_id = %s', (session['user_id'], group_id,))
         voted_polls = cursor.fetchall();
-        print('--------------------VOTED POLL----------------')
-        print(voted_polls);
+        # print('--------------------VOTED POLL----------------')
+        # print(voted_polls);
 
         if not voted_polls:
             voted_polls = []
@@ -554,10 +554,11 @@ def group_page(group_name):
                 voted_polls[i]['vote_count'] = poll_highest_vote_count['COUNT(option_id)']
                 voted_polls[i]['highest_vote'] = highest_vote_option['optionText']
 
-            print('------------NEW ALTERED VOTED POLL DATA_----------------')
-            print(voted_polls)
-
-        group_status='active'
+            # print('------------NEW ALTERED VOTED POLL DATA_----------------')
+            # print(voted_polls)
+        cursor.execute('SELECT group_status FROM tb_group where group_id = %s', (group_id,))
+        group_status = cursor.fetchone()
+        group_status = group_status['group_status']
 
 
         return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options, voted_polls=voted_polls, group_status=group_status)
@@ -626,30 +627,73 @@ def poll_vote(group_name):
 
 @app.route('/group/<group_name>/close', methods=['GET','POST'])
 def close_group(group_name):
-    if request.method == 'GET':
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        # get list of user_id in group (given group_name)
-        cursor.execute('select tb_user.user_id, tb_user.user_name from tb_user join tb_group_members on tb_user.user_id = tb_group_members.user_id join tb_group on tb_group_members.group_id = tb_group.group_id where tb_group.group_name =%s', (group_name,))
-        group_members = cursor.fetchall()
-        # print(group_members)
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    # get list of user_id in group (given group_name)
+    cursor.execute(''
+                   'select tb_user.user_id, tb_user.user_name from tb_user '
+                   'join tb_group_members on tb_user.user_id = tb_group_members.user_id '
+                   'join tb_group on tb_group_members.group_id = tb_group.group_id '
+                   'where tb_group.group_name =%s and tb_user.user_id != %s',
+        (group_name, session['user_id']))
+    group_members = cursor.fetchall()
 
-        return render_template('close_group.html', group_name=group_name, group_members=group_members)
-
-    else:
+    if request.method == 'POST':
         # close_group_data = request.json
         open_reason = request.json['openReason']
         close_reason = request.json['closeReason']
         userRatings = request.json['userRatings']
 
         print(request.json)
+        result = {'url': url_for('home')}
 
         # iterate through user each user in group - paired with userRating's index
         # insert i = 0, user_id : userRatings in tb_user_evaluation table
+        print('--------------EVALUATED GROUP MEMBERS-----------')
+        print(group_members)
 
-        return redirect(url_for('group_page'))
+        # get group_id given group_name
+        cursor.execute('SELECT group_id from tb_group where group_name = %s', (group_name,))
+        group_id = cursor.fetchone()
+        group_id = group_id['group_id']
+
+        for i in range(0, len(userRatings)):
+            print(group_members[i]['user_name'], userRatings[str(i)])
+            cursor.execute('INSERT INTO tb_user_evaluations (group_id, rater_id, evaluation_score, user_id) VALUES (%s, %s, %s, %s)', (group_id, session['user_id'], userRatings[str(i)], group_members[i]['user_id']))
+
+
+        # set group_status in tb_group given group_name to 'inactive'
+        cursor.execute('UPDATE tb_group SET group_status = %s WHERE group_id = %s', ('inactive', group_id,))
+
+        mysql.connection.commit();
+
+        return jsonify(result)
+
+
+    else:
+        # print(group_members)
+
+        return render_template('close_group.html', group_name=group_name, group_members=group_members)
 
 
 
+
+
+# @app.route('/group/<group_name>/closed', methods=['GET','POST'])
+# def closed(group_name):
+#     if request.method == 'POST':
+#         # close_group_data = request.json
+#         open_reason = request.json['openReason']
+#         close_reason = request.json['closeReason']
+#         userRatings = request.json['userRatings']
+#
+#         print(request.json)
+#         result = {'url': url_for('home')}
+#         return jsonify(result)
+#
+#         # iterate through user each user in group - paired with userRating's index
+#         # insert i = 0, user_id : userRatings in tb_user_evaluation table
+#
+#     return render_template('index.html')
 
 @app.errorhandler(404)
 def not_found(e):
