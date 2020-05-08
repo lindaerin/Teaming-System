@@ -245,7 +245,6 @@ def add_reply():
         return redirect(url_for('into_reply', post_id=session['post_id']))
 
 
-
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
     # Output message if something goes wrong...
@@ -266,20 +265,23 @@ def login():
             session['loggedin'] = True
             session['user_id'] = account['user_id']
             session['username'] = account['user_name']
+            # check if user is a new user
+            cursor.execute('SELECT * FROM tb_profile WHERE user_id = %s', [session['user_id']])
+            # if user is not a new user
+            user_exist = cursor.fetchone()
+            if user_exist:
+                # go profile page
+                if account['didtheychangepass'] == 0:
+                    return(redirect(url_for("reset_password")))
+                else:
+                    return redirect(url_for('profile'))
+            # otherwise insert data into table profile: user_id, user_type, user_status, user_scores
+            cursor.execute('INSERT INTO tb_profile (user_id) VALUES (%s)', [session['user_id']])
+            mysql.connection.commit()
+            # go profile page
             if account['didtheychangepass'] == 0:
                 return(redirect(url_for("reset_password")))
             else:
-                # check if user is a new user
-                cursor.execute('SELECT * FROM tb_profile WHERE user_id = %s', [session['user_id']])
-                # if user is not a new user
-                user_exist = cursor.fetchone()
-                if user_exist:
-                    # go profile page
-                    return redirect(url_for('profile'))
-                # otherwise insert data into table profile: user_id, user_type, user_status, user_scores
-                cursor.execute('INSERT INTO tb_profile (user_id) VALUES (%s)', [session['user_id']])
-                mysql.connection.commit()
-                # go profile page
                 return redirect(url_for('profile'))
         else:
             # Account doesnt exist or username/password incorrect
