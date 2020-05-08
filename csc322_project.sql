@@ -87,6 +87,24 @@ create table tb_invite (
     foreign key (user_id) references tb_user (user_id)
     );
 
+create table tb_whitelist (
+    user_id INT,
+    user_name_friend VARCHAR(50),
+    foreign key (user_id) references tb_user (user_id)
+    );
+
+create table tb_user_blacklist (
+    user_id INT,
+    user_name_blocked VARCHAR(50),
+    foreign key (user_id) references tb_user (user_id)
+    );
+
+create table tb_invite (
+    user_id INT,
+    group_id INT,
+    foreign key (user_id) references tb_user (user_id)
+    );
+
 -- create table post
 create table tb_post (
 	post_id int auto_increment,
