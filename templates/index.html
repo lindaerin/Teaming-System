@@ -19,14 +19,81 @@
      {% endwith %}
  </div>
 
+<div class="container clearfix">
+    <div class="left-home"> <!-- left side start-->
+        <h2>Top Super User Profile</h2>
+        {% if top_SU %}
+            {% for su in top_SU %}
+                <div class="top-user">
+                    <table>
+                        <tr>
+                            <td>Username:</td>
+                            <td><a href="{{ url_for('poster_profile', poster_id=su.user_id) }}">
+                                {{ su.user_name }}</a></td>
+                        </tr>
+                        <tr>
+                            <td>User Type:</td>
+                            <td>{{ su.user_type }}</td>
+                        </tr>
+                        <tr>
+                            <td>Reputation:</td>
+                            <td>&nbsp;{{ su.user_scores }}</td>
+                        </tr>
+                        <tr>
+                            <td>Email:</td>
+                            <td>{{ su.email }}</td>
+                        </tr>
+                    </table>
+                    <hr>
+                </div>
 
-<h2 class="text-center">3 Top rated Post</h2>
+            {% endfor %}
+
+        {% else %}
+            <h4>Current No Super User Profile</h4>
+            <hr>
+        {% endif %}
+
+        <h2>Top Ordinary User Profile</h2>
+        {% if top_OU %}
+            {% for ou in top_OU %}
+                <div class="top-user">
+                    <table>
+                        <tr>
+                            <td>Username:</td>
+                            <td><a href="{{ url_for('poster_profile', poster_id=ou.user_id) }}">
+                                {{ ou.user_name }}</a></td>
+                        </tr>
+                        <tr>
+                            <td>User Type:</td>
+                            <td>{{ ou.user_type }}</td>
+                        </tr>
+                        <tr>
+                            <td>Reputation:</td>
+                            <td>&nbsp;{{ ou.user_scores }}</td>
+                        </tr>
+                        <tr>
+                            <td>Email:</td>
+                            <td>{{ ou.email }}</td>
+                        </tr>
+                    </table>
+                    <hr>
+                </div>
+              {% endfor %}
+        {% else %}
+            <h4>Current No Ordinary User Profile</h4>
+        {% endif %}
+
+    </div>
+ <div class="right-home">
+
+<h2 class="text-center">Top rated Post</h2>
 <div class="main">
 {% for ps in post %}    <!--loop to show all posts-->
     {% if ps.flag %}    <!-- if flag in the post( the 4th post) , show below messages -->
-        <h6>===========================================================================</h6>
+        <h6>=================================================================</h6>
         <h4 style="text-align: center">General Post ↓↓↓</h4>
-        <h6>===========================================================================</h6>
+        <h6>=================================================================</h6>
     {% endif %}
    <ul>             <!-- post part -->
         <li>
@@ -43,5 +110,7 @@
         </li>
    </ul>
 {% endfor %}  <!-- end loop -->
+</div>
+ </div>
 </div>
 {% endblock %}

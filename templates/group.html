@@ -5,8 +5,63 @@
     {% endblock %}
 {% block content %}
 
+{% if not_in_group %}   <!-- if a user is a visitor or not in this group, only show public information-->
+
+<div class="content">
+            <h2>Group Page</h2>
+                <table>
+                    <tr>
+                        <td>Group Name:</td>
+                        <td>{{ group.group_name }}</td>
+                    </tr>
+                    <tr>
+                        <td>Group Created By:</td>
+                        <td>{{ group.user_name }}</td>
+                    </tr>
+                    <tr>
+                        <td>Group Created Time:</td>
+                        <td>{{ group.group_created_time }}</td>
+                    </tr>
+                </table>
+            <hr>
+            <div class="description" style="box-shadow: 0 0 0 0; padding: 0; margin: 0;">
+                <tr>
+                    <h6>Group Description:</h6>
+                    <td>{{ group.group_describe }}</td>
+                </tr>
+            </div>
+
+            <h2>Group members</h2>
+                    <table>  <!-- show all group members in the list if exist in the Group_members DB-->
+                    {% for name in group_members %}
+                        <tr>
+                            <td><a href="{{ url_for('poster_profile', poster_id=name.user_id) }}">
+                                 <button class="btn btn-primary" style="font-size: 20px; width: 200px;
+                             margin:10px; word-break: break-all; height: 50px; ">{{ name.user_name }}</button></a></td>
+                        </tr>
+                    {% endfor %}
+                    </table>
+</div>
+         {% else %}  <!-- otherwise, show all information about this group-->
+
+            <!-- error flash message -->
+            <div class="show-message" style="text-align: center; width: 360px; margin:0 auto;">
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-warning alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">×</span></button>
+                    {{message}}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+
+
 <div class="container clearfix">
-    <div class="left"> <!-- left side start-->
+    <div class="left">            <!-- left side start-->
 
         <div class="content" style="width: 400px;height: 100%;">
             <h2>Group Page</h2>
@@ -319,19 +374,7 @@
                             </div><!-- /.modal-content -->
                         </div><!-- /.modal-dialog -->
                     </div><!-- /.modal -->
-                    <div class="show-message" style="text-align: center; width: 360px; margin:0 auto;">
-                        {% with messages = get_flashed_messages() %}
-                        {% if messages %}
-                        {% for message in messages %}
-                        <div class="alert alert-warning alert-dismissible" role="alert">
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">×</span></button>
-                            {{message}}
-                        </div>
-                        {% endfor %}
-                        {% endif %}
-                        {% endwith %}
-                    </div>
+
                 </form>  <!-- form end-->
                     </td>
                 </tr>
@@ -376,6 +419,7 @@
 
         </div>
 </div>
+                        {% endif %}   <!-- end -->
 {% endblock %}
 
 

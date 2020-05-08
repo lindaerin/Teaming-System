@@ -94,3 +94,29 @@ ul li {
     height: 100%;
     background-color: white;
 }
+
+.top-user {
+     width: 352px;
+     height: 130px;
+     background-color: #e2e1e8;
+     padding: 5px;
+}
+
+.left-home {
+    font-weight: 700;
+    float: left;
+    width: 32%;
+    height: 100%;
+    background-color: white;
+    border-right: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+.right-home {
+
+    word-break: break-all;
+    float: left;
+    width: 67%;
+    height: 100%;
+    background-color: white;
+}

@@ -62,10 +62,30 @@ create table tb_profile (
 
 insert into tb_profile (user_id, user_type, user_scores) values
 (100,'Super User', 100),
-(101, 'Ordinary', 0),
-(102, 'Ordinary', 0),
-(103, 'Ordinary', 0),
-(104, 'Ordinary', 0);
+(101, 'Ordinary', 20),
+(102, 'Ordinary', 10),
+(103, 'SuperUser', 30),
+(104, 'SuperUser', 25),
+(105, 'Ordinary', 5),
+(106, 'SuperUser',35);
+
+create table tb_whitelist (
+    user_id INT,
+    user_name_friend VARCHAR(50),
+    foreign key (user_id) references tb_user (user_id)
+    );
+
+create table tb_user_blacklist (
+    user_id INT,
+    user_name_blocked VARCHAR(50),
+    foreign key (user_id) references tb_user (user_id)
+    );
+
+create table tb_invite (
+    user_id INT,
+    group_id INT,
+    foreign key (user_id) references tb_user (user_id)
+    );
 
 -- create table post
 create table tb_post (
