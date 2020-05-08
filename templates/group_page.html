@@ -79,6 +79,9 @@
                 <form id="createVoteForm" action="{{ url_for('create_groupvote', group_name=group.group_name) }}" class="col-md-12" method="post">
                     <div class="form-input-content">
                           <div class="form-group">
+                            <input type="text" class="form-control" id="groupvote-title" name="groupvote-title" placeholder="Group Vote Title" required>
+                          </div>
+                          <div class="form-group">
                               <select class="form-control" name="voteType" onchange="selectGroupVoteType(this);">
                                   <option selected>Choose Vote Type...</option>
                                   <option class="voteType-user" name="vote-type" value="praise">Praise a User</option>

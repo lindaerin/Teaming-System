@@ -668,27 +668,40 @@ def group_page(group_name):
         for i, group_vote in enumerate(voted_group_votes):
             cursor.execute('SELECT COUNT(group_vote_id) from tb_group_vote_responses where group_id=%s and group_vote_id=%s', (group_id, group_vote['group_vote_id']))
             total_group_vote_responses = cursor.fetchone()
+            print('total_Group_vote_responses', total_group_vote_responses)
 
-            cursor.execute('SELECT user_id FROM tb_user where user_name = %s', (group_vote['user_subject'],))
-            user_id = cursor.fetchone()
-            print(user_id)
-            # user_id = user_id['user_id']
+            if group_vote['user_subject'] is not None:
+                cursor.execute('SELECT user_id FROM tb_user where user_name = %s', (group_vote['user_subject'],))
+                user_id = cursor.fetchone()
+                print('---user_id---')
+                print(user_id)
+                user_id = user_id['user_id']
 
-            # if total_group_vote_responses['COUNT(group_vote_id)'] = vote_count_needed, DO THE VOTE SUBJECT!!!!
-            # get highest_vote, user_subject, vote_subject
-            # if total_group_vote_responses['COUNT(group_vote_id)'] == vote_count_needed:
-            #     if group_vote['highest_vote'] == 'Yes':
-            #         print(group_vote['user_subject'], ' will get a ', group_vote['vote_subject'])
-            #         if group_vote['vote_subject'] == 'praise':
-            #             cursor.execute('UPDATE tb_group_members SET user_praises = user_praises + 1 where user_id = %s', (user_id,))
-            #         elif group_vote['vote_subject'] == 'warning':
-            #             cursor.execute('UPDATE tb_group_members SET user_warnings = user_warnings + 1 where user_id = %s', (user_id,))
-            #         # else, user will get removed from the group
-            #         else:
-            #             cursor.execute('DELETE FROM tb_group_members WHERE user_id = %s AND group_id = %s', (user_id, group_id,))
-            #
-            #     else:
-            #         print(group_vote['user_subject'], ' will not get a ', group_vote['vote_subject'])
+                # if total_group_vote_responses['COUNT(group_vote_id)'] = vote_count_needed, DO THE VOTE SUBJECT!!!!
+                # get highest_vote, user_subject, vote_subject
+                if total_group_vote_responses['COUNT(group_vote_id)'] == vote_count_needed:
+                    if group_vote['highest_vote'] == 'Yes':
+                        print(group_vote['user_subject'], ' will get a ', group_vote['vote_subject'])
+                        if group_vote['vote_subject'] == 'praise':
+                            cursor.execute('UPDATE tb_group_members SET user_praises = user_praises + 1 where user_id = %s', (user_id,))
+                        elif group_vote['vote_subject'] == 'warning':
+                            cursor.execute('UPDATE tb_group_members SET user_warnings = user_warnings + 1 where user_id = %s', (user_id,))
+                        # else, user will get removed from the group
+                        else:
+                            cursor.execute('DELETE FROM tb_group_members WHERE user_id = %s AND group_id = %s', (user_id, group_id,))
+
+                    else:
+                        print(group_vote['user_subject'], ' will not get a ', group_vote['vote_subject'])
+            # else if group_vote['user_subject] is None = close_group
+            else:
+                # get COUNT(group_vote_id) where vote_subject = 'close_group'
+                if total_group_vote_responses['COUNT(group_vote_id)'] == total_group_members:
+                    if group_vote['highest_vote'] == 'Yes':
+                        print('The group will be closed!')
+                        # redirect to close group evaluation form
+                        return redirect(url_for('close_group', group_name=group_name))
+                    else:
+                        print('The group will not be closed')
 
 
         mysql.connection.commit()
