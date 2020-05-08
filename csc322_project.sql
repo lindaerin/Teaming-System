@@ -139,15 +139,15 @@ BEGIN
             SET @value = SUBSTRING_INDEX(@myArrayOfUsers,',',1);
             IF (LENGTH(@myArrayOfUsers) > LENGTH(@value) +2)  THEN
                 SET @myArrayOfUsers= SUBSTRING(@myArrayOfUsers, LENGTH(@value) + 2);
-                INSERT INTO `group_members` VALUES(NEWGROUP, @value);
+                INSERT INTO `tb_group_members` VALUES(NEWGROUP, @value, 0, 0);
             ELSE
-                INSERT INTO `group_members` VALUES(NEWGROUP, @value);
+                INSERT INTO `tb_group_members` VALUES(NEWGROUP, @value, 0, 0);
                 -- to end while loop
                 SET @myArrayOfUsers=  '';
             END IF;
             IF LENGTH(@myArrayOfUsers) > 0 AND LOCATE(',', @myArrayOfUsers) = 0 then
                 -- Last entry was withóut comma
-                INSERT INTO `group_members` VALUES(NEWGROUP, @myArrayOfUsers);
+                INSERT INTO `tb_group_members` VALUES(NEWGROUP, @myArrayOfUsers, 0, 0);
             END IF;
     END WHILE;
 END$$
@@ -196,10 +196,10 @@ create table tb_poll_responses (
 );
 
 -- insert a simple poll into a group
--- insert into tb_poll (poll_title, poll_body, group_id, created_by) values 
--- ('Programming Language', 'What is your favorite programming language?', 1000, 102),
--- ('Feature', 'What feature do you think is most important?', 1001, 103),
--- ('Meeting Times', 'When are you available to meet this week?', 1002, 101);
+insert into tb_poll (poll_title, poll_body, group_id, created_by) values 
+('Programming Language', 'What is your favorite programming language?', 1000, 102),
+('Feature', 'What feature do you think is most important?', 1001, 103),
+('Meeting Times', 'When are you available to meet this week?', 1002, 101);
 
 
 -- insert poll options
@@ -228,9 +228,9 @@ END$$
 
 DELIMITER ;
 
--- CALL insert_poll_options('Python,JavaScript,Ruby,Go,C++', 1);
--- CALL insert_poll_options('Messaging,Notification,Styling', 2);
--- CALL insert_poll_options('Monday after class,Tuesday 2pm,Wednesday after class', 3);
+CALL insert_poll_options('Python,JavaScript,Ruby,Go,C++', 1);
+CALL insert_poll_options('Messaging,Notification,Styling', 2);
+CALL insert_poll_options('Monday after class,Tuesday 2pm,Wednesday after class', 3);
 
 -- insert poll responses by group_members - vote reponses
 
@@ -268,9 +268,24 @@ CREATE TABLE tb_group_votes (
     vote_subject varchar(50) NOT NULL,
     user_subject int,
     user_id int NOT NULL,
+    highest_vote varchar(50) default NULL,
+    vote_count int default 0,
     primary key (group_vote_id),
     foreign key (group_id) references tb_group(group_id),
     foreign key (user_id) references tb_user(user_id)
+);
+
+-- create table with group_vote_responses
+CREATE TABLE tb_group_vote_responses (
+	group_vote_response_id int auto_increment,
+    group_vote_id int NOT NULL,
+    group_id int NOT NULL,
+    voter_id int NOT NULL,
+    vote_response varchar(50) NOT NULL,
+    primary key (group_vote_response_id),
+    foreign key (group_vote_id) references tb_group_votes(group_vote_id),
+    foreign key (group_id) references tb_group(group_id),
+    foreign key (voter_id) references tb_user(user_id)
 );
 
 -- create report table where users, visitors, can report to SU for issues such with a user or group, etc

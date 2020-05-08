@@ -243,11 +243,11 @@ body.loggedin {
 	}
 	
 
-	.pollOptions-container, .showPollResults-container {
+	.pollOptions-container, .showPollResults-container, .showGroupVoteResults-container {
 		display: none;
 	}
 
-	input[type="radio"], .poll-option-label {
+	input[type="radio"], .poll-option-label, .groupvote-option-label {
 		cursor: pointer;
 	}
 
@@ -307,6 +307,7 @@ body.loggedin {
 		top: 30%;
 		right: 20%;
 	}
+
 
 	/* CLOSE GROUP PAGE	*/
 	.close-group-form__container {

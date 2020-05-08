@@ -66,9 +66,8 @@
     </div>
     </div>
 
-        <div class="tabcontent__container">
+    <div class="tabcontent__container tabcontent__groupvote">
     <div class="row">
-
         <div id="Group Votes" class="tabcontent" style="right: 20%;">
             <div class="poll-parent-container container">
             {% if group_status == 'active' %}
@@ -78,10 +77,7 @@
             <div class="row poll-form-container d-flex col-md-12 mx-auto" id="voteFormContainer">
                 <div class="poll-form-content col-md-12">
                 <form id="createVoteForm" action="{{ url_for('create_groupvote', group_name=group.group_name) }}" class="col-md-12" method="post">
-                    <div class="form-input-content" id="formInputContent">
-                          <div class="form-group">
-                            <input type="text" class="form-control" id="groupvote-title" name="groupvote-title" placeholder="Group Vote Title" required>
-                          </div>
+                    <div class="form-input-content">
                           <div class="form-group">
                               <select class="form-control" name="voteType" onchange="selectGroupVoteType(this);">
                                   <option selected>Choose Vote Type...</option>
@@ -107,8 +103,146 @@
                 </form>
                 </div>
             </div>
+                {% if group_votes %}
+            <h5 class="text-center">Current Group Votes</h5>
+            {% for group_vote in group_votes %}
+                <div class="container col-md-12 mx-auto">
+                        <div class="card">
+                          <div class="card-header">
+                                {% if group_vote.vote_subject  == 'close_group' %}
+                                    <p class="card-title">Vote to Close Group</p>
+                                {% endif %}
+                              {% if group_vote.vote_subject == 'praise' %}
+                                <h6 class="card-title">Vote on User Praise</h6>
+                              {% endif %}
+
+                              {% if group_vote.vote_subject == 'warning' %}
+                                  <h6 class="card-title">Vote on User Warning</h6>
+                              {% endif %}
+
+                              {% if group_vote.vote_subject == 'user_removal' %}
+                                <h6 class="card-title">Vote to Remove User</h6>
+                              {% endif %}
+                          </div>
+                            <div class="row card-content__container">
+                              <div class="card-body float-left">
+                                {% if group_vote.vote_subject  == 'close_group' %}
+                                    <p class="card-body">Would you like to close the group?</p>
+                                {% endif %}
+                                {% if group_vote.vote_subject == 'praise' %}
+                                    <p class="card-body">Would you like to give&nbsp<b>{{ group_vote.user_subject }}</b>&nbsppraise?</p>
+                                {% endif %}
+
+                                {% if group_vote.vote_subject == 'warning' %}
+                                    <p class="card-body">Would you like to give&nbsp<b>{{ group_vote.user_subject }}</b>&nbspa warning?</p>
+                                {% endif %}
+
+                                {% if group_vote.vote_subject == 'user_removal' %}
+                                  <p class="card-body">Would you like to remove&nbsp<b>{{ group_vote.user_subject }}</b>&nbspfrom the group?</p>
+                                {% endif %}
+                              </div>
+                              <div class="card-body float-right">
+                                  <button type="button" class="btn btn-primary submitPoll-btn" onClick="">Respond</button>
+                              </div>
+                            </div>
+
+                            <form action="{{ url_for('groupvote_response', group_name=group.group_name, group_vote_id=group_vote.group_vote_id) }}" method="post">
+                                    <div class="pollOptions-container row">
+                                        <div class="pollOptions-content container text-center">
+                                                <div class="row pollOptions-option__parent">
+                                                    <div class="pollOptions-option radio col-lg-12">
+                                                        <input type="radio" id="yes-option-{{ group_vote.group_vote_id }}"  name="groupvote-option" value="Yes">
+                                                        <label class="groupvote-option-label" for="yes-option-{{ group_vote.group_vote_id }}">Yes</label>
+                                                    </div>
+                                                    <div class="pollOptions-option radio col-lg-12">
+                                                        <input type="radio" id="no-option-{{ group_vote.group_vote_id }}" name="groupvote-option" value="No">
+                                                        <label class="groupvote-option-label" for="no-option-{{ group_vote.group_vote_id }}">No</label>
+                                                    </div>
+                                                </div>
+
+                                            <div class="pollOptions-btn text-center">
+                                                <button type="submit" class="btn btn-warning" name="submit-groupvote">Vote</button>
+                                            </div>
+                                            </div>
+                                    </div>
+                            </form>
+                        </div>
+
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if voted_group_votes %}
+            <h5 class="text-center">My Responded Group Votes</h5>
+            {% for group_vote in voted_group_votes %}
+                <div class="container col-md-12 mx-auto">
+                    <div class="card">
+                      <div class="card-header">
+                            {% if group_vote.vote_subject  == 'close_group' %}
+                                <p class="card-title">Would you like to close the group?</p>
+                            {% endif %}
+                            {% if group_vote.vote_subject == 'praise' %}
+                                <h6 class="card-title">Vote on User Praise</h6>
+                              {% endif %}
+
+                              {% if group_vote.vote_subject == 'warning' %}
+                                  <h6 class="card-title">Vote on User Warning</h6>
+                              {% endif %}
+
+                              {% if group_vote.vote_subject == 'user_removal' %}
+                                <h6 class="card-title">Vote to Remove User</h6>
+                              {% endif %}
+                      </div>
+                        <div class="row">
+                          <div class="card-body">
+                                {% if group_vote.vote_subject  == 'close_group' %}
+                                    <p class="card-body">Would you like to close the group?</p>
+                                {% endif %}
+                                {% if group_vote.vote_subject == 'praise' %}
+                                    <p class="card-body">Would you like to give&nbsp<b>{{ group_vote.user_subject }}</b>&nbsppraise?</p>
+                                {% endif %}
+
+                                {% if group_vote.vote_subject == 'warning' %}
+                                    <p class="card-body">Would you like to give&nbsp<b>{{ group_vote.user_subject }}</b>&nbspa warning?</p>
+                                {% endif %}
+
+                                {% if group_vote.vote_subject == 'user_removal' %}
+                                  <p class="card-body">Would you like to remove&nbsp<b>{{ group_vote.user_subject }}</b>&nbspfrom the group?</p>
+                                {% endif %}
+                          </div>
+                          <div class="card-body">
+                              <button type="button" class="btn btn-warning showGroupVoteResults-btn" onClick="">Show Results</button>
+                          </div>
+                        </div>
+
+                                <div class="showGroupVoteResults-container row">
+                                    <div class="showPollResults-content container text-center">
+                                            <div class="row">
+                                                <div class="pollOptions-option radio col-lg-6">
+                                                    <b>Highest Vote:</b>
+                                                    {% if group_vote.vote_count <= 1 %}
+                                                        <p>Not enough votes...</p>
+
+                                                    {% else %}
+                                                    <p>{{ group_vote.highest_vote }} <span class="badge badge-warning"> {{ group_vote.vote_count }}</span></p>
+                                                    {% endif %}
+                                                </div>
+
+                                                <div class="pollOptions-option radio col-lg-6">
+                                                    <b>Your Vote:</b>
+                                                    <p>{{ group_vote.vote_response }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                </div>
+                    </div>
+
+                </div>
+            {% endfor %}
+        {% endif %}
+            </div>
         </div>
-        </div>
+
 
 
     </div>
@@ -301,9 +435,11 @@
 
     var pollOption = document.getElementsByClassName('pollOptions-container');
     var showPollResults = document.getElementsByClassName('showPollResults-container');
+    var showGroupVoteResults = document.getElementsByClassName('showGroupVoteResults-container')
     /** get respond button index **/
     var submitPollBtn = document.getElementsByClassName('submitPoll-btn');
     var showPollResultsBtn = document.getElementsByClassName('showPollResults-btn');
+    var showGroupVoteResultsBtn = document.getElementsByClassName('showGroupVoteResults-btn');
 
     for(var i = 0; i < pollOption.length; i++){
         pollOption[i].style.display = 'none';
@@ -311,6 +447,10 @@
 
     for(var i = 0; i < showPollResults.length; i++){
         showPollResults[i].style.display = 'none';
+    }
+
+    for(var i = 0; i < showGroupVoteResults.length; i++){
+        showGroupVoteResults[i].style.display = 'none';
     }
 
     for (var i = 0; i < submitPollBtn.length; i++) {
@@ -363,6 +503,34 @@
                         showPollResultsBtn[i].innerHTML = 'Hide';
                     } else {
                         showPollResultsBtn[i].innerHTML = 'Show Results';
+                    }
+
+                }, false);
+            })(i);
+        }
+
+        for (var i = 0; i < showGroupVoteResultsBtn.length; i++) {
+            (function (i) {
+                showGroupVoteResultsBtn[i].addEventListener('click', function (event) {
+                    {#console.log(i);#}
+                    {#console.log(pollOption[i]);#}
+                    console.log(showGroupVoteResultsBtn[i]);
+
+                    if (showGroupVoteResults[i].style.display === ''){
+                        showGroupVoteResults[i].style.display = 'none';
+                    }
+                    if (showGroupVoteResults[i].style.display === "none") {
+                        showGroupVoteResults[i].style.display = "block";
+                    } else {
+                        showGroupVoteResults[i].style.display = "none";
+                    }
+                    if(showGroupVoteResultsBtn[i].innerHTML === ''){
+                        showGroupVoteResultsBtn[i].innerHTML = 'Show Results';
+                    }
+                    if(showGroupVoteResultsBtn[i].innerHTML === 'Show Results'){
+                        showGroupVoteResultsBtn[i].innerHTML = 'Hide';
+                    } else {
+                        showGroupVoteResultsBtn[i].innerHTML = 'Show Results';
                     }
 
                 }, false);

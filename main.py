@@ -559,8 +559,8 @@ def group_page(group_name):
         # get user's voted polls information/data
         cursor.execute('select tb_poll.poll_title, tb_poll.poll_body, tb_poll.poll_id, tb_poll_options.optionText, tb_poll.vote_count, tb_poll.highest_vote from tb_poll join tb_poll_options on tb_poll.poll_id = tb_poll_options.poll_id join tb_poll_responses on tb_poll_options.option_id = tb_poll_responses.option_id where tb_poll_responses.user_id = %s and tb_poll.group_id = %s', (session['user_id'], group_id,))
         voted_polls = cursor.fetchall();
-        # print('--------------------VOTED POLL----------------')
-        # print(voted_polls);
+        print('--------------------VOTED POLL----------------')
+        print(voted_polls);
 
         if not voted_polls:
             voted_polls = []
@@ -588,8 +588,113 @@ def group_page(group_name):
         # group_status = group_status['group_status']
         group_status = 'active'
 
+        # get user's group votes forms (ALL) for now
+        cursor.execute('SELECT * from tb_group_votes where group_id = %s and user_subject IS NULL UNION SELECT * FROM tb_group_votes where group_id = %s and user_subject != %s', (group_id, group_id, session['user_id'],))
+        all_group_votes = cursor.fetchall()
+        print('----------all group votes-----------')
+        print(all_group_votes)
 
-        return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options, voted_polls=voted_polls, group_status=group_status)
+        user_subject_username = []
+        # for all user_subject in group_votes get user_name
+        for group_vote in all_group_votes:
+            # print(group_vote['user_subject'])
+            if group_vote['user_subject'] is not None:
+                cursor.execute('SELECT user_name from tb_user where user_id = %s', (group_vote['user_subject'],))
+                subject_username = cursor.fetchone()
+                user_subject_username.append(subject_username['user_name'])
+
+            else:
+                user_subject_username.append(None)
+
+            print(user_subject_username)
+
+
+        # add subject username into group_vote data
+        for i in range(0, len(all_group_votes)):
+            if all_group_votes[i]['user_subject'] is not None:
+                all_group_votes[i]['user_subject'] = user_subject_username[i]
+            else:
+                continue
+        print('----all group votes-----')
+        print(all_group_votes)
+
+
+        #get user's responded group votes
+        cursor.execute('select tb_group_votes.group_id, tb_group_votes.group_vote_id, tb_group_vote_responses.vote_response, tb_group_votes.vote_subject, tb_group_votes.user_subject, tb_group_votes.highest_vote, tb_group_votes.vote_count from tb_group_votes join tb_group_vote_responses on tb_group_votes.group_vote_id = tb_group_vote_responses.group_vote_id where tb_group_vote_responses.voter_id = %s and tb_group_votes.group_id = %s', (session['user_id'], group_id,))
+        voted_group_votes = cursor.fetchall()
+        print('-----------VOTED GROUP VOTES-----------')
+
+        # replace user_subject id with user_subject usernames
+        subject_usernames = []
+        # for all user_subject in group_votes get user_name
+        for group_vote in voted_group_votes:
+            if group_vote['user_subject'] is not None:
+                cursor.execute('SELECT user_name from tb_user where user_id = %s', (group_vote['user_subject'],))
+                subject_username = cursor.fetchone()
+                subject_usernames.append(subject_username['user_name'])
+            else:
+                subject_usernames.append(None)
+
+        # add subject username into group_vote data
+        for i in range(0, len(voted_group_votes)):
+            if voted_group_votes[i]['user_subject'] is not None:
+                voted_group_votes[i]['user_subject'] = subject_usernames[i]
+            else:
+                continue
+
+
+        print(len(voted_group_votes))
+
+        # get highest vote count for each voted group_votes
+        if voted_group_votes:
+            for i, group_vote in enumerate(voted_group_votes):
+                cursor.execute('select group_id, group_vote_id, COUNT(vote_response), vote_response from tb_group_vote_responses where group_vote_id = %s group by vote_response order by COUNT(vote_response) desc limit 1', (group_vote['group_vote_id'],))
+                highest_group_vote = cursor.fetchone()
+
+                # store highest group vote count and highest vote response text into voted_group_votes
+                voted_group_votes[i]['vote_count'] = highest_group_vote['COUNT(vote_response)']
+                voted_group_votes[i]['highest_vote'] = highest_group_vote['vote_response']
+        print('-------ALTERED VOTE GROUP VOTE WTIH HIGHEST VOTE AND VOTE COUNT---------')
+        print(voted_group_votes)
+
+        # check if all users have voted on USER_RELATED GROUP POLLS
+        # get total number of group members in group
+        cursor.execute('SELECT COUNT(group_id) from tb_group_members where group_id=%s', (group_id,))
+        total_group_members = cursor.fetchone()
+        total_group_members = total_group_members['COUNT(group_id)']
+        vote_count_needed = total_group_members - 1
+
+        # traverse through all voted_group_polls to see if there is a unanimous vote
+        for i, group_vote in enumerate(voted_group_votes):
+            cursor.execute('SELECT COUNT(group_vote_id) from tb_group_vote_responses where group_id=%s and group_vote_id=%s', (group_id, group_vote['group_vote_id']))
+            total_group_vote_responses = cursor.fetchone()
+
+            cursor.execute('SELECT user_id FROM tb_user where user_name = %s', (group_vote['user_subject'],))
+            user_id = cursor.fetchone()
+            print(user_id)
+            # user_id = user_id['user_id']
+
+            # if total_group_vote_responses['COUNT(group_vote_id)'] = vote_count_needed, DO THE VOTE SUBJECT!!!!
+            # get highest_vote, user_subject, vote_subject
+            # if total_group_vote_responses['COUNT(group_vote_id)'] == vote_count_needed:
+            #     if group_vote['highest_vote'] == 'Yes':
+            #         print(group_vote['user_subject'], ' will get a ', group_vote['vote_subject'])
+            #         if group_vote['vote_subject'] == 'praise':
+            #             cursor.execute('UPDATE tb_group_members SET user_praises = user_praises + 1 where user_id = %s', (user_id,))
+            #         elif group_vote['vote_subject'] == 'warning':
+            #             cursor.execute('UPDATE tb_group_members SET user_warnings = user_warnings + 1 where user_id = %s', (user_id,))
+            #         # else, user will get removed from the group
+            #         else:
+            #             cursor.execute('DELETE FROM tb_group_members WHERE user_id = %s AND group_id = %s', (user_id, group_id,))
+            #
+            #     else:
+            #         print(group_vote['user_subject'], ' will not get a ', group_vote['vote_subject'])
+
+
+        mysql.connection.commit()
+
+
+        return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options, voted_polls=voted_polls, group_status=group_status, group_votes = all_group_votes, voted_group_votes=voted_group_votes)
     else:
         return render_template('404.html')
 
@@ -736,9 +841,26 @@ def create_groupvote(group_name):
 
         mysql.connection.commit();
 
-
-
     return render_template('close_group.html', group_name=group_name)
+
+@app.route('/group/<group_name>/<group_vote_id>/group-vote-response', methods=['GET', 'POST'])
+def groupvote_response(group_name, group_vote_id):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    if request.method == 'POST':
+        if 'submit-groupvote' in request.form:
+            groupvote_response = request.form['groupvote-option']
+            print(groupvote_response)
+
+            cursor.execute('SELECT group_id from tb_group where group_name = %s', (group_name,))
+            group_id = cursor.fetchone()
+            group_id = group_id['group_id']
+
+            # insert response to tb_group_vote_responses
+            cursor.execute('INSERT INTO tb_group_vote_responses (group_vote_id, group_id, voter_id, vote_response) VALUES (%s, %s, %s, %s)', (group_vote_id, group_id, session['user_id'], groupvote_response))
+
+            mysql.connection.commit();
+
+        return render_template('index.html')
 
 
 @app.errorhandler(404)
