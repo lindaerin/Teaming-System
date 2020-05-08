@@ -297,20 +297,23 @@ def login():
             session['loggedin'] = True
             session['user_id'] = account['user_id']
             session['username'] = account['user_name']
-            if account['didtheychangepass'] == 0:
-                return (redirect(url_for("reset_password")))
-            else:
-                # check if user is a new user
-                cursor.execute('SELECT * FROM tb_profile WHERE user_id = %s', [session['user_id']])
-                # if user is not a new user
-                user_exist = cursor.fetchone()
-                if user_exist:
-                    # go profile page
-                    return redirect(url_for('profile'))
-                # otherwise insert data into table profile: user_id, user_type, user_status, user_scores
-                cursor.execute('INSERT INTO tb_profile (user_id) VALUES (%s)', [session['user_id']])
-                mysql.connection.commit()
+            # check if user is a new user
+            cursor.execute('SELECT * FROM tb_profile WHERE user_id = %s', [session['user_id']])
+            # if user is not a new user
+            user_exist = cursor.fetchone()
+            if user_exist:
                 # go profile page
+                if account['didtheychangepass'] == 0:
+                    return (redirect(url_for("reset_password")))
+                else:
+                    return redirect(url_for('profile'))
+            # otherwise insert data into table profile: user_id, user_type, user_status, user_scores
+            cursor.execute('INSERT INTO tb_profile (user_id) VALUES (%s)', [session['user_id']])
+            mysql.connection.commit()
+            # go profile page
+            if account['didtheychangepass'] == 0:
+                return redirect(url_for("reset_password"))
+            else:
                 return redirect(url_for('profile'))
         else:
             # Account doesnt exist or username/password incorrect
@@ -816,9 +819,7 @@ def poll_vote(group_id):
             cursor.execute("INSERT INTO tb_poll_responses (poll_id, option_id, user_id)"
                            " VALUES (%s, %s, %s)", (poll_option_details[0]['poll_id'],
                                                     poll_option_details[0]['option_id'], session['user_id']))
-
             mysql.connection.commit()
-
             return redirect(url_for('into_group', group_id=group_id))
 
 
