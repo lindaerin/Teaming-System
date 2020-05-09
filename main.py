@@ -466,6 +466,8 @@ def profile():
                     if not exist and not otherlist:
                         cursor.execute("INSERT INTO tb_user_blacklist (user_id, user_name_blocked)" "VALUES (%s,%s)",
                                        ([session['user_id']], user_blacklist))
+                        mysql.connection.commit()
+
                         # We need all the account info for the user so we can display it on the profile page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         # join table profile and table user to get user information: id, name, email, user_type, user_scores,
