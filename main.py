@@ -2,7 +2,8 @@ import random
 import re
 import string
 from functools import wraps
-from collections import defaultdict
+
+import math
 
 import MySQLdb.cursors
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
@@ -246,7 +247,8 @@ def profile():
             for i in range(0, len(user_scores)):
                 total_score += user_scores[i]['evaluation_score']
 
-            user_score = int(total_score / len(user_scores))
+            user_score = round(total_score / len(user_scores))
+
             print(user_score)
 
             # update user_score in tb_user
@@ -478,6 +480,20 @@ def group_page(group_name):
         cursor.execute('SELECT user_id from tb_group_members WHERE group_id=%s', (group_id,))
         group_members = cursor.fetchall()
 
+        # for all group_member id in group, get user's praises and warnings
+        # cursor.execute('SELECT user_praises, user_warnings from tb_group_members where')
+        group_member_points = []
+        for i in range(0, len(group_members)):
+            cursor.execute('SELECT user_id, user_praises, user_warnings from tb_group_members where user_id = %s', (group_members[i]['user_id'],))
+            member_points = cursor.fetchone()
+            group_member_points.append(member_points)
+
+        # replace all user_id with respective user_name into group_member_points
+        for i in range(0, len(group_members)):
+            cursor.execute('SELECT user_name from tb_user where user_id = %s', (group_members[i]['user_id'],))
+            member_user_name = cursor.fetchone()
+            group_member_points[i]['user_id'] = member_user_name
+
         # get list of users from table and save it as a string
         # INNER JOIN HERE
         cursor.execute('SELECT user_name from tb_user inner join tb_group_members ON tb_user.user_id = tb_group_members.user_id WHERE group_id = %s', (group_id,))
@@ -560,16 +576,18 @@ def group_page(group_name):
 
             # print('------------NEW ALTERED VOTED POLL DATA_----------------')
             # print(voted_polls)
-        # cursor.execute('SELECT group_status FROM tb_group where group_id = %s', (group_id,))
-        # group_status = cursor.fetchone()
-        # group_status = group_status['group_status']
-        group_status = 'active'
+
+        # get all unresponded user group votes
+        cursor.execute('select group_vote_id, vote_subject, user_subject, user_id from tb_group_votes where (group_vote_id not in (select group_vote_id from tb_group_vote_responses where group_id = %s and voter_id = %s) and group_vote_status = %s)', (group_id, session['user_id'], 'open',))
+        all_group_votes = cursor.fetchall()
+        print('---unanswered group votes---')
+        print(all_group_votes)
 
         # get user's group votes forms (ALL) for now
-        cursor.execute('SELECT * from tb_group_votes where group_id = %s and user_subject IS NULL UNION SELECT * FROM tb_group_votes where group_id = %s and user_subject != %s', (group_id, group_id, session['user_id'],))
-        all_group_votes = cursor.fetchall()
-        print('----------all group votes-----------')
-        print(all_group_votes)
+        # cursor.execute('SELECT * from tb_group_votes where group_id = %s and user_subject IS NULL UNION SELECT * FROM tb_group_votes where group_id = %s and user_subject != %s', (group_id, group_id, session['user_id'],))
+        # all_group_votes = cursor.fetchall()
+        # print('----------all group votes-----------')
+        # print(all_group_votes)
 
         user_subject_username = []
         # for all user_subject in group_votes get user_name
@@ -595,9 +613,11 @@ def group_page(group_name):
         print('----all group votes-----')
         print(all_group_votes)
 
+        group_status = 'active'
+
 
         #get user's responded group votes
-        cursor.execute('select tb_group_votes.group_id, tb_group_votes.group_vote_id, tb_group_vote_responses.vote_response, tb_group_votes.vote_subject, tb_group_votes.user_subject, tb_group_votes.highest_vote, tb_group_votes.vote_count from tb_group_votes join tb_group_vote_responses on tb_group_votes.group_vote_id = tb_group_vote_responses.group_vote_id where tb_group_vote_responses.voter_id = %s and tb_group_votes.group_id = %s', (session['user_id'], group_id,))
+        cursor.execute('select tb_group_votes.group_id, tb_group_votes.group_vote_id, tb_group_vote_responses.vote_response, tb_group_votes.vote_subject, tb_group_votes.user_subject, tb_group_votes.group_vote_status, tb_group_votes.highest_vote, tb_group_votes.vote_count from tb_group_votes join tb_group_vote_responses on tb_group_votes.group_vote_id = tb_group_vote_responses.group_vote_id where tb_group_vote_responses.voter_id = %s and tb_group_votes.group_id = %s', (session['user_id'], group_id,))
         voted_group_votes = cursor.fetchall()
         print('-----------VOTED GROUP VOTES-----------')
 
@@ -657,13 +677,43 @@ def group_page(group_name):
                 if total_group_vote_responses['COUNT(group_vote_id)'] == vote_count_needed:
                     if group_vote['highest_vote'] == 'Yes':
                         print(group_vote['user_subject'], ' will get a ', group_vote['vote_subject'])
-                        if group_vote['vote_subject'] == 'praise':
+                        if group_vote['vote_subject'] == 'praise' and group_vote['group_vote_status'] == 'open':
+                            # update user praise points
                             cursor.execute('UPDATE tb_group_members SET user_praises = user_praises + 1 where user_id = %s', (user_id,))
-                        elif group_vote['vote_subject'] == 'warning':
+                            cursor.execute('UPDATE tb_group_votes SET group_vote_status = %s WHERE group_vote_id = %s', ('closed', group_vote['group_vote_id']))
+                            # save to db
+                            mysql.connection.commit()
+                            # auto reload
+                            return render_template('group_page.html', group=group, members=final_usernames,
+                                                   member_points=group_member_points, description=team_desc,
+                                                   polls=all_options, voted_polls=voted_polls,
+                                                   group_status=group_status, group_votes=all_group_votes,
+                                                   voted_group_votes=voted_group_votes)
+
+                        elif group_vote['vote_subject'] == 'warning' and group_vote['group_vote_status'] == 'open':
                             cursor.execute('UPDATE tb_group_members SET user_warnings = user_warnings + 1 where user_id = %s', (user_id,))
+                            cursor.execute('UPDATE tb_group_votes SET group_vote_status = %s WHERE group_vote_id = %s',
+                                           ('closed', group_vote['group_vote_id']))
+                            mysql.connection.commit()
+
+                            return render_template('group_page.html', group=group, members=final_usernames,
+                                                   member_points=group_member_points, description=team_desc,
+                                                   polls=all_options, voted_polls=voted_polls,
+                                                   group_status=group_status, group_votes=all_group_votes,
+                                                   voted_group_votes=voted_group_votes)
                         # else, user will get removed from the group
-                        else:
+                        elif group_vote['vote_subject'] == 'user_removal' and group_vote['group_vote_status'] == 'open':
                             cursor.execute('DELETE FROM tb_group_members WHERE user_id = %s AND group_id = %s', (user_id, group_id,))
+                            cursor.execute('UPDATE tb_group_votes SET group_vote_status = %s WHERE group_vote_id = %s',
+                                           ('closed', group_vote['group_vote_id']))
+
+                            mysql.connection.commit()
+
+                            return render_template('group_page.html', group=group, members=final_usernames,
+                                                   member_points=group_member_points, description=team_desc,
+                                                   polls=all_options, voted_polls=voted_polls,
+                                                   group_status=group_status, group_votes=all_group_votes,
+                                                   voted_group_votes=voted_group_votes)
 
                     else:
                         print(group_vote['user_subject'], ' will not get a ', group_vote['vote_subject'])
@@ -708,8 +758,9 @@ def group_page(group_name):
                                 return redirect(url_for('close_group', group_name=group_name))
                     else:
                         print('The group will not be closed')
+    mysql.connection.commit()
 
-    return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options, voted_polls=voted_polls, group_status=group_status, group_votes = all_group_votes, voted_group_votes=voted_group_votes)
+    return render_template('group_page.html', group=group, members=final_usernames, member_points=group_member_points, description=team_desc, polls=all_options, voted_polls=voted_polls, group_status=group_status, group_votes = all_group_votes, voted_group_votes=voted_group_votes)
 
 @app.route('/group/<group_name>/create-poll', methods=['GET', 'POST'])
 def create_poll(group_name):

@@ -6,6 +6,21 @@
 
 {% block content %}
 
+    <div class="show-message" style="text-align: center; width: 360px; margin:0 auto;">
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-warning alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">×</span></button>
+                    {{message}}
+                    TEST
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+
 <div class="group-page__main-heading__container row">
 <div class="group-page__content__container col-lg-6">
     <h4 class="text-center group-page__heading"> Group Page of {{group.group_name}}
@@ -146,7 +161,7 @@
                                 {% endif %}
                               </div>
                               <div class="card-body float-right">
-                                  <button type="button" class="btn btn-primary submitPoll-btn" onClick="">Respond</button>
+                                  <button type="button" class="btn btn-primary submitPoll-btn">Respond</button>
                               </div>
                             </div>
 
@@ -421,10 +436,18 @@
                 </div>
             </form>
 
-            <form action="{{ url_for('close_group', group_name=group.group_name) }}" method="get">
-                <button type="submit" class="btn btn-outline-danger">Close Group</button>
-            </form>
             {% endif %}
+
+            {% if member_points %}
+                {% for member in member_points %}
+                <div class="member-point-info card text-center">
+                    <p>Username: {{ member.user_id.user_name }}</p>
+                    <p>Warnings: {{ member.user_warnings }}</p>
+                    <p>Praises: {{ member.user_praises }}</p>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
 
         </div>
 

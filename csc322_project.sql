@@ -154,10 +154,10 @@ END$$
 
 DELIMITER ;
 
-CALL insert_members('103,102', 1001);
-CALL insert_members('102,101', 1003);
+CALL insert_members('103,102,104,105', 1001);
+CALL insert_members('102,101,105', 1003);
 CALL insert_members('103,101,102', 1000);
-CALL insert_members('103,101,100', 1002);
+CALL insert_members('103,101,104', 1002);
 
 
 -- POLLING SYSTEM
@@ -270,6 +270,7 @@ CREATE TABLE tb_group_votes (
     user_id int NOT NULL,
     highest_vote varchar(50) default NULL,
     vote_count int default 0,
+    group_vote_status varchar(50) default 'open',
     primary key (group_vote_id),
     foreign key (group_id) references tb_group(group_id),
     foreign key (user_id) references tb_user(user_id)
