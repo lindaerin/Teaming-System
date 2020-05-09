@@ -18,7 +18,12 @@
      {% endif %}
      {% endwith %}
  </div>
-
+    {% if completed %}
+        <div class="evaluation-completed__container container text-center">
+            <h1 class="text-center">Thank you for completing the Close Group Evaluation Form!</h1>
+            <a href="/profile/myProfile" class="link_404">Return</a>
+        </div>
+    {% else %}
     <div class="content">
         <h2 class="text-center">Close Group Evaluation</h2>
         <form action="{{ url_for('close_group', group_name=group_name) }}" method="post" id="closeGroupForm">
@@ -66,6 +71,7 @@
             </div>
         </form>
     </div>
+    {% endif %}
     <script>
     const stars = document.getElementsByClassName('fas fa-star');
 

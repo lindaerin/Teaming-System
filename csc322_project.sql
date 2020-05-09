@@ -154,7 +154,7 @@ END$$
 
 DELIMITER ;
 
-CALL insert_members('101,103,102,100', 1001);
+CALL insert_members('103,102', 1001);
 CALL insert_members('102,101', 1003);
 CALL insert_members('103,101,102', 1000);
 CALL insert_members('103,101,100', 1002);

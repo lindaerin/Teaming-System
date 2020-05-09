@@ -387,33 +387,6 @@ def search():
             return redirect(url_for('public_profile', user_name=account['user_name']))
 
 
-# create a group
-# @app.route('/group/', methods=['GET', 'POST'])
-# # def create_group():
-# #     if request.method == "POST":
-# #         group_name = request.form['group_name']
-# #         group_describe = request.form['describe']
-# #         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-# #         # check if the group name entered by the user was in the table group
-# #         cursor.execute('SELECT * FROM tb_group WHERE group_name = %s', (group_name,))
-# #         group_name_exist = cursor.fetchone()
-# #         # if exist: show the error message and return to the profile page
-# #         if group_name_exist:
-# #             flash('Group Already Exist')
-# #             return redirect(url_for('profile'))
-# #         # otherwise insert data into table group: group_name, user_id, group_describe
-# #         cursor.execute('INSERT INTO tb_group (group_name, user_id, group_describe) VALUES (%s, %s, %s)',
-# #                        (group_name, session['user_id'], group_describe))
-# #         mysql.connection.commit()
-# #         # get the group id by desc
-# #         cursor.execute('SELECT group_id FROM tb_group order by -group_id')
-# #         group_id = cursor.fetchone()
-# #         # insert data into table group_members: group_id and user_name
-# #         cursor.execute('INSERT INTO tb_group_members (group_id, user_name) VALUES (%s, %s)',
-# #                        (group_id['group_id'], session['username']))
-# #         mysql.connection.commit()
-# #         return redirect(url_for('profile'))
-
 @app.route('/group/', methods=['GET', 'POST'])
 def create_group():
     msg = ''
@@ -500,6 +473,10 @@ def group_page(group_name):
         cursor.execute('SELECT * from tb_group WHERE group_name = %s', (group_name,))
         group = cursor.fetchone()
         group_id = group['group_id']
+
+        # get all group_member id in group
+        cursor.execute('SELECT user_id from tb_group_members WHERE group_id=%s', (group_id,))
+        group_members = cursor.fetchall()
 
         # get list of users from table and save it as a string
         # INNER JOIN HERE
@@ -642,7 +619,6 @@ def group_page(group_name):
             else:
                 continue
 
-
         print(len(voted_group_votes))
 
         # get highest vote count for each voted group_votes
@@ -668,7 +644,6 @@ def group_page(group_name):
         for i, group_vote in enumerate(voted_group_votes):
             cursor.execute('SELECT COUNT(group_vote_id) from tb_group_vote_responses where group_id=%s and group_vote_id=%s', (group_id, group_vote['group_vote_id']))
             total_group_vote_responses = cursor.fetchone()
-            print('total_Group_vote_responses', total_group_vote_responses)
 
             if group_vote['user_subject'] is not None:
                 cursor.execute('SELECT user_id FROM tb_user where user_name = %s', (group_vote['user_subject'],))
@@ -698,18 +673,43 @@ def group_page(group_name):
                 if total_group_vote_responses['COUNT(group_vote_id)'] == total_group_members:
                     if group_vote['highest_vote'] == 'Yes':
                         print('The group will be closed!')
-                        # redirect to close group evaluation form
-                        return redirect(url_for('close_group', group_name=group_name))
+
+                        # check if all group_members have filled out close group eval form
+                        num_of_evaluations = 0
+
+                        for k in range(0, len(group_members)):
+                            cursor.execute('SELECT * FROM tb_user_evaluations WHERE rater_id = %s AND group_id = %s',
+                                           (group_members[k]['user_id'], group_id,))
+                            user_evaluated = cursor.fetchone()
+                            if user_evaluated:
+                                num_of_evaluations = num_of_evaluations + 1
+
+                        print('Close Group Eval Submissions: ', num_of_evaluations)
+                        print('Total Number of Group Members: ', len(group_members))
+
+                        # if every group_member has submitted eval form, CLOSE THE GROUP - set group_status to inactive!!!
+                        if num_of_evaluations == len(group_members):
+                            print('-----------all EVAL FORM SUBMITTED-------------!!!!!!!!!!!!')
+                            # set group_status to inactive!!!!
+                            cursor.execute('UPDATE tb_group SET group_status = %s WHERE group_id = %s', ('inactive', group_id,))
+
+                            mysql.connection.commit()
+
+                            return render_template('index.html')
+                        # not all close group eval form submitted
+                        elif num_of_evaluations < len(group_members):
+                            #if check if user completed evaluation form: user_id is not in tb_user_evaluations - redirect to index: ultimately redirect to 'Thank you for evaluating'
+                            cursor.execute('SELECT * from tb_user_evaluations WHERE rater_id = %s AND group_id= %s', (session['user_id'],group_id,))
+                            evaluation_completed = cursor.fetchone()
+                            if evaluation_completed:
+                                return render_template('close_group.html', group_name=group_name, completed=evaluation_completed)
+                            else:
+                                # redirect to close group evaluation form
+                                return redirect(url_for('close_group', group_name=group_name))
                     else:
                         print('The group will not be closed')
 
-
-        mysql.connection.commit()
-
-
-        return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options, voted_polls=voted_polls, group_status=group_status, group_votes = all_group_votes, voted_group_votes=voted_group_votes)
-    else:
-        return render_template('404.html')
+    return render_template('group_page.html', group=group, members=final_usernames, description=team_desc, polls=all_options, voted_polls=voted_polls, group_status=group_status, group_votes = all_group_votes, voted_group_votes=voted_group_votes)
 
 @app.route('/group/<group_name>/create-poll', methods=['GET', 'POST'])
 def create_poll(group_name):
@@ -771,6 +771,7 @@ def poll_vote(group_name):
 
             return redirect(url_for('group_page', group_name=group_name))
 
+
 @app.route('/group/<group_name>/close', methods=['GET','POST'])
 def close_group(group_name):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -808,7 +809,7 @@ def close_group(group_name):
 
 
         # set group_status in tb_group given group_name to 'inactive'
-        cursor.execute('UPDATE tb_group SET group_status = %s WHERE group_id = %s', ('inactive', group_id,))
+        # cursor.execute('UPDATE tb_group SET group_status = %s WHERE group_id = %s', ('inactive', group_id,))
 
         # insert project evaluation into tb_project_evaluations
         cursor.execute('INSERT INTO tb_project_evaluations (project_open_reason, project_close_reason, group_id) VALUES (%s, %s, %s)', (open_reason, close_reason, group_id,))
@@ -817,9 +818,7 @@ def close_group(group_name):
 
         return jsonify(result)
 
-
-    else:
-        return render_template('close_group.html', group_name=group_name, group_members=group_members)
+    return render_template('close_group.html', group_name=group_name, group_members=group_members)
 
 
 @app.route('/group/<group_name>/create-group-vote', methods=['GET', 'POST'])
@@ -836,15 +835,30 @@ def create_groupvote(group_name):
         print('-----------GROUP VOTE FORM SUBMISSION-----------')
         print(groupvote_title, groupvote_type)
 
-        if groupvote_type =='close_group':
-            # insert group group-vote
-            cursor.execute('INSERT INTO tb_group_votes (group_id, vote_subject, user_id) VALUES (%s, %s, %s)',
-                           (group_id, groupvote_type, session['user_id']), )
+        if groupvote_type == 'close_group':
+            # check if close_group groupvote already exists in tb_group_votes
+            cursor.execute('SELECT * FROM tb_group_votes WHERE vote_subject = %s AND group_id = %s', (groupvote_type, group_id,))
+            close_group_vote_exists = cursor.fetchone()
+            if close_group_vote_exists:
+                msg = 'You may not create more than one Close Group Vote!'
+                return redirect(url_for('group_page', group_name=group_name))
+            else:
+                # insert group group-vote
+                cursor.execute('INSERT INTO tb_group_votes (group_id, vote_subject, user_id) VALUES (%s, %s, %s)',
+                               (group_id, groupvote_type, session['user_id']), )
 
         user_subject = ''
         if groupvote_type == 'praise' or groupvote_type == 'warning' or groupvote_type == 'user_removal':
             user_subject = request.form['user-subject']
-            cursor.execute('SELECT user_id from tb_user where user_name = %s', (user_subject, ))
+
+            # #check if user_subject exist in group
+            # cursor.execute('SELECT user_id from tb_group_members where user_id = %s and group_id= %s', (user_subject, group_id,))
+            # check_user_exists = cursor.fetchone()
+            # if not check_user_exists:
+            #     msg = 'This user does not exist within the group!'
+            #     return render_template('group_page.html', group_name=group_name, message=msg)
+            # else:
+            cursor.execute('SELECT user_id from tb_user where user_name = %s', (user_subject,))
             user_subject_id = cursor.fetchone()
             user_subject_id = user_subject_id['user_id']
 
@@ -852,9 +866,11 @@ def create_groupvote(group_name):
             cursor.execute('INSERT INTO tb_group_votes (group_id, vote_subject, user_subject, user_id) VALUES (%s, %s, %s, %s)', (group_id, groupvote_type, user_subject_id, session['user_id'],))
 
 
+
         mysql.connection.commit();
 
-    return render_template('close_group.html', group_name=group_name)
+    return redirect(url_for('group_page', group_name=group_name))
+
 
 @app.route('/group/<group_name>/<group_vote_id>/group-vote-response', methods=['GET', 'POST'])
 def groupvote_response(group_name, group_vote_id):
@@ -873,13 +889,12 @@ def groupvote_response(group_name, group_vote_id):
 
             mysql.connection.commit();
 
-        return render_template('index.html')
+        return redirect(url_for('group_page', group_name=group_name))
 
 
 @app.errorhandler(404)
 def not_found(e):
     return render_template('404.html')
-
 
 
 # invite feature
