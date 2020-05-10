@@ -415,15 +415,15 @@ def create_group():
 
         if not group_name:
             msg='Please enter a group name'
-            return render_template('group.html', msg=msg, group_name=group_name, invite=invite, description=description)
+            return redirect(url_for('profile'))
 
         if not invite:
             msg = 'Please invite users to group'
-            return render_template('group.html', msg=msg, group_name=group_name, invite=invite, description=description)
+            return render_template('group.html', msg=msg, group=group_name, invite=invite, description=description)
 
         if not invite and not group_name:
             msg = 'Please fill out the form'
-            return render_template('group.html', msg=msg)
+            # return render_template('group.html', msg=msg)
 
         # cursor.execute('SELECT user_id from tb_user WHERE user_name = %s', (invite,))
         # invite_id = cursor.fetchone()
@@ -436,7 +436,9 @@ def create_group():
         # If team_name currently exists, show error that it is taken
         if name:
             msg = 'This Project Name is already taken!'
-            return render_template('group.html', msg=msg, group_name=group_name, invite=invite, description=description)
+            # return render_template('group.html', msg=msg, group_name=group_name, invite=invite, description=description)
+            return render_template('profile.html', messages=msg)
+
         else:
             msg = 'You have successfully created a team!'
             # Insert project name to make project id into tb_group
@@ -457,7 +459,7 @@ def create_group():
 
             return redirect(url_for('group_page', group_name=group_name))
 
-    return render_template('group.html')
+    return render_template('index.html', messages=msg)
 
 
 
@@ -903,18 +905,18 @@ def create_groupvote(group_name):
             user_subject = request.form['user-subject']
 
             # #check if user_subject exist in group
-            # cursor.execute('SELECT user_id from tb_group_members where user_id = %s and group_id= %s', (user_subject, group_id,))
-            # check_user_exists = cursor.fetchone()
-            # if not check_user_exists:
-            #     msg = 'This user does not exist within the group!'
-            #     return render_template('group_page.html', group_name=group_name, message=msg)
-            # else:
-            cursor.execute('SELECT user_id from tb_user where user_name = %s', (user_subject,))
-            user_subject_id = cursor.fetchone()
-            user_subject_id = user_subject_id['user_id']
+            cursor.execute('SELECT user_id from tb_group_members where user_id = %s and group_id= %s', (user_subject, group_id,))
+            check_user_exists = cursor.fetchone()
+            if not check_user_exists:
+                msg = 'This user does not exist within the group!'
+                return render_template('index.html', msg=msg)
+            else:
+                cursor.execute('SELECT user_id from tb_user where user_name = %s', (user_subject,))
+                user_subject_id = cursor.fetchone()
+                user_subject_id = user_subject_id['user_id']
 
-            # insert user group-vote
-            cursor.execute('INSERT INTO tb_group_votes (group_id, vote_subject, user_subject, user_id) VALUES (%s, %s, %s, %s)', (group_id, groupvote_type, user_subject_id, session['user_id'],))
+                # insert user group-vote
+                cursor.execute('INSERT INTO tb_group_votes (group_id, vote_subject, user_subject, user_id) VALUES (%s, %s, %s, %s)', (group_id, groupvote_type, user_subject_id, session['user_id'],))
 
 
 
