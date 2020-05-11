@@ -196,8 +196,9 @@ def appeal():
 def home():
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     # join table post and table user to get post_title, post_content, post_time, user_id, user_name
-    cursor.execute('SELECT tb_post.*, tb_user.user_name FROM tb_post INNER JOIN tb_user ON'
-                   ' tb_post.user_id = tb_user.user_id order by -post_time')
+    cursor.execute('SELECT tb_post.*, tb_user.user_name, tb_profile.user_type FROM tb_post INNER JOIN tb_user ON'
+                   ' tb_post.user_id = tb_user.user_id INNER JOIN tb_profile ON tb_profile.user_id = tb_post.user_id'
+                   ' order by -post_time')
     # Fetch all post records and return result
     post = cursor.fetchall()
     # count replied number for each post
@@ -264,12 +265,60 @@ def into_reply(post_id):
 # reply feature
 @app.route('/add_reply/', methods=['post'])
 def add_reply():
-    reply_content = request.form['reply_content']
-    if not reply_content:
-        flash('Please fill out the form!')
-        return redirect(url_for('into_reply', post_id=session['post_id']))
-    else:
+    if request.method == 'POST':
+        reply_content = request.form['reply_content']
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        # Find the current user information
+        cursor.execute('SELECT * FROM tb_profile WHERE tb_profile.user_id = %s', [session['user_id']], )
+        user_info = cursor.fetchone()
+        # if the user_type is Ordinary
+        if user_info['user_type'] == 'Ordinary':
+            # Check out the taboo word list
+            cursor.execute('SELECT * FROM tb_taboo')
+            taboo_list = cursor.fetchall()
+            # Create a list to save all taboo words the user typed in the post
+            taboo_words = []
+            for i in range(len(taboo_list)):
+                # find all taboo words in the user post_content, ignore all cases
+                taboo = re.findall(taboo_list[i]['word'], reply_content, flags=re.IGNORECASE)
+                # if exist
+                if taboo:
+                    # remove repeat taboo words
+                    taboo = list(dict.fromkeys(taboo))
+                    # add into the list
+                    taboo_words += taboo
+                    for j in range(len(taboo)):
+                        # replace the taboo words to be ***
+                        reply_content = reply_content.replace(taboo[j], '***')
+            # make all taboo words to be lower case
+            taboo_words = [x.lower() for x in taboo_words]
+            # remove the repeat taboo words
+            taboo_words = list(dict.fromkeys(taboo_words))
+            # if taboo_words exist:
+            if taboo_words:
+                cursor.execute('UPDATE tb_profile SET user_scores = %s WHERE user_id = %s',
+                               ((user_info['user_scores'] - 1), session['user_id']))
+                mysql.connection.commit()
+                flash('Warning! Your Chat contains taboo words, Your Reputation will be reduced by this Rule:'
+                      ' First Time use this word : -1 point, Next Time: -5 points ')
+
+                for i in range(len(taboo_words)):
+                    # insert taboo words into table user_taboo
+                    cursor.execute('INSERT INTO tb_user_taboo (user_id, word) VALUES (%s, %s)',
+                                   (session['user_id'], taboo_words[i]))
+                    mysql.connection.commit()
+
+                    # find all information of this user in table user_taboo
+                    cursor.execute('SELECT * FROM tb_user_taboo WHERE user_id = %s AND word = %s',
+                                   (session['user_id'], taboo_words[i]))
+                    user_taboo = cursor.fetchall()
+                    print(user_taboo)
+                    # if this word occurs > 1, scores - 5
+                    if len(user_taboo) > 1:
+                        cursor.execute('UPDATE tb_profile SET user_scores = %s WHERE user_id = %s',
+                                       ((user_info['user_scores'] - 5), session['user_id']))
+                        mysql.connection.commit()
+
         # insert data into table reply: user_id, reply_content, post_id
         cursor.execute('INSERT INTO tb_reply (user_id, reply_content, post_id) VALUES '
                        '(%s, %s, %s)', (session['user_id'], reply_content, session['post_id']))
@@ -466,6 +515,7 @@ def profile():
                     if not exist and not otherlist:
                         cursor.execute("INSERT INTO tb_user_blacklist (user_id, user_name_blocked)" "VALUES (%s,%s)",
                                        ([session['user_id']], user_blacklist))
+                        mysql.connection.commit()
                         # We need all the account info for the user so we can display it on the profile page
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         # join table profile and table user to get user information: id, name, email, user_type, user_scores,
@@ -526,12 +576,11 @@ def poster_profile(poster_id):
                    ' tb_group_members.user_name = tb_user.user_name WHERE tb_user.user_id = %s', (poster_id,))
 
     others_group_info = cursor.fetchall()
-    print('other', others_group_info)
     return render_template('profile.html', poster_account=account, post_history=post_history,
                            others_group_info=others_group_info)
 
 
-# http://localhost:5000/python/logout - this will be the logout page
+# this will be the logout page
 @app.route('/logout/')
 def logout():
     # Remove session data, this will log the user out
@@ -551,11 +600,61 @@ def post():
         # Check if account exists using MySQL
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM tb_post WHERE post_title = %s', (title,))
-        post = cursor.fetchone()
+        title_exist = cursor.fetchone()
         # If account exists show error and validation checks
-        if post:
+        if title_exist:
             msg = 'Error: Title already exists!\n'
         else:
+            # Find the current user information
+            cursor.execute('SELECT * FROM tb_profile WHERE tb_profile.user_id = %s', [session['user_id']], )
+            user_info = cursor.fetchone()
+            # if the user_type is Ordinary
+            if user_info['user_type'] == 'Ordinary':
+                # Check out the taboo word list
+                cursor.execute('SELECT * FROM tb_taboo')
+                taboo_list = cursor.fetchall()
+                # Create a list to save all taboo words the user typed in the post
+                taboo_words = []
+                for i in range(len(taboo_list)):
+                    # find all taboo words in the user post_content, ignore all cases
+                    taboo = re.findall(taboo_list[i]['word'], content, flags=re.IGNORECASE)
+                    # if exist
+                    if taboo:
+                        # remove repeat taboo words
+                        taboo = list(dict.fromkeys(taboo))
+                        # add into the list
+                        taboo_words += taboo
+                        for j in range(len(taboo)):
+                            # replace the taboo words to be ***
+                            content = content.replace(taboo[j], '***')
+                # make all taboo words to be lower case
+                taboo_words = [x.lower() for x in taboo_words]
+                # remove the repeat taboo words
+                taboo_words = list(dict.fromkeys(taboo_words))
+                if taboo_words:
+                    cursor.execute('UPDATE tb_profile SET user_scores = %s WHERE user_id = %s',
+                                   ((user_info['user_scores'] - 1), session['user_id']))
+                    mysql.connection.commit()
+                    flash('Warning! Your Post contains taboo words, Your Reputation will be reduced by this Rule:'
+                          ' First Time use this word : -1 point, Next Time: -5 points ')
+
+                    for i in range(len(taboo_words)):
+                        # insert taboo words into table user_taboo
+                        cursor.execute('INSERT INTO tb_user_taboo (user_id, word) VALUES (%s, %s)',
+                                       (session['user_id'], taboo_words[i]))
+                        mysql.connection.commit()
+
+                        # find all information of this user in table user_taboo
+                        cursor.execute('SELECT * FROM tb_user_taboo WHERE user_id = %s AND word = %s',
+                                       (session['user_id'], taboo_words[i]))
+                        user_taboo = cursor.fetchall()
+                        print(user_taboo)
+                        # if this word occurs > 1, scores - 5
+                        if len(user_taboo) > 1:
+                            cursor.execute('UPDATE tb_profile SET user_scores = %s WHERE user_id = %s',
+                                           ((user_info['user_scores'] - 5), session['user_id']))
+                            mysql.connection.commit()
+
             # Account doesnt exists and the form data is valid, now insert new account into accounts table
             cursor.execute("INSERT INTO tb_post (post_title, post_content, user_id)"
                            " VALUES (%s, %s, %s)", (title, content, session['user_id']))
@@ -567,6 +666,18 @@ def post():
         msg = 'Please fill out the form!'
         # Show registration form with message (if any)
     return render_template('post.html', msg=msg)
+
+
+# delete post
+@app.route('/<post_id>/')
+def delete_post(post_id):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    print('p_id', post_id)
+    cursor.execute('DELETE FROM tb_post WHERE post_id = %s', (post_id,))
+    mysql.connection.commit()
+    return redirect(url_for('profile'))
+
+
 
 
 # search bar
@@ -625,10 +736,7 @@ def into_group(group_id):
     # get the group's information: group_name, group_describe, group_id, group_created_time, group_creater if exist
     cursor.execute('SELECT tb_group.*, tb_group_members.user_name FROM tb_group_members INNER JOIN tb_group'
                    ' ON tb_group.group_id = tb_group_members.group_id WHERE tb_group.group_id = %s', (group_id,))
-    '''
-    cursor.execute('SELECT tb_group.*, tb_group_members.user_name FROM tb_group_members INNER JOIN tb_group'
-                   ' ON tb_group.group_id = %s AND tb_group_members.user_name = %s', (group_id, session['username']))
-                   '''
+
     group = cursor.fetchone()
     print('group', group)
     # get the group members' information: user_name, user_id
@@ -772,6 +880,58 @@ def chat(group_id):
         chat_content = request.form['chat_content']
         # Check if account exists using MySQL
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+        # Find the current user information
+        cursor.execute('SELECT * FROM tb_profile WHERE tb_profile.user_id = %s', [session['user_id']], )
+        user_info = cursor.fetchone()
+        # if the user_type is Ordinary
+        if user_info['user_type'] == 'Ordinary':
+            # Check out the taboo word list
+            cursor.execute('SELECT * FROM tb_taboo')
+            taboo_list = cursor.fetchall()
+            # Create a list to save all taboo words the user typed in the post
+            taboo_words = []
+            for i in range(len(taboo_list)):
+                # find all taboo words in the user post_content, ignore all cases
+                taboo = re.findall(taboo_list[i]['word'], chat_content, flags=re.IGNORECASE)
+                # if exist
+                if taboo:
+                    # remove repeat taboo words
+                    taboo = list(dict.fromkeys(taboo))
+                    # add into the list
+                    taboo_words += taboo
+                    for j in range(len(taboo)):
+                        # replace the taboo words to be ***
+                        chat_content = chat_content.replace(taboo[j], '***')
+            # make all taboo words to be lower case
+            taboo_words = [x.lower() for x in taboo_words]
+            # remove the repeat taboo words
+            taboo_words = list(dict.fromkeys(taboo_words))
+            # if taboo_words exist:
+            if taboo_words:
+                cursor.execute('UPDATE tb_profile SET user_scores = %s WHERE user_id = %s',
+                               ((user_info['user_scores'] - 1), session['user_id']))
+                mysql.connection.commit()
+                flash('Warning! Your Chat contains taboo words, Your Reputation will be reduced by this Rule:'
+                      ' First Time use this word : -1 point, Next Time: -5 points ')
+
+                for i in range(len(taboo_words)):
+                    # insert taboo words into table user_taboo
+                    cursor.execute('INSERT INTO tb_user_taboo (user_id, word) VALUES (%s, %s)',
+                                   (session['user_id'], taboo_words[i]))
+                    mysql.connection.commit()
+
+                    # find all information of this user in table user_taboo
+                    cursor.execute('SELECT * FROM tb_user_taboo WHERE user_id = %s AND word = %s',
+                                   (session['user_id'], taboo_words[i]))
+                    user_taboo = cursor.fetchall()
+                    print(user_taboo)
+                    # if this word occurs > 1, scores - 5
+                    if len(user_taboo) > 1:
+                        cursor.execute('UPDATE tb_profile SET user_scores = %s WHERE user_id = %s',
+                                       ((user_info['user_scores'] - 5), session['user_id']))
+                        mysql.connection.commit()
+
         cursor.execute('INSERT INTO tb_chat (user_id, group_id, chat_content) VALUES (%s, %s, %s)',
                        (session['user_id'], group_id, chat_content))
         mysql.connection.commit()

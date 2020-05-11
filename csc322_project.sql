@@ -86,24 +86,28 @@ create table tb_invite (
     group_id INT,
     foreign key (user_id) references tb_user (user_id)
     );
+    
+-- create table taboo word   
+create table tb_taboo (
+	word_id int auto_increment,
+    word varchar(100) unique,
+    primary key (word_id)
+);
+ALTER TABLE tb_taboo auto_increment = 1;
 
-create table tb_whitelist (
-    user_id INT,
-    user_name_friend VARCHAR(50),
-    foreign key (user_id) references tb_user (user_id)
-    );
+-- insert value in table taboo
+insert into tb_taboo (word_id, word) values
+(1, 'fuck'),
+(2, 'stupid'),
+(3, 'shit'),
+(4, 'fk');
 
-create table tb_user_blacklist (
-    user_id INT,
-    user_name_blocked VARCHAR(50),
+-- create table user taboo 
+create table tb_user_taboo (
+	user_id int,
+    word varchar(100),
     foreign key (user_id) references tb_user (user_id)
-    );
-
-create table tb_invite (
-    user_id INT,
-    group_id INT,
-    foreign key (user_id) references tb_user (user_id)
-    );
+);
 
 -- create table post
 create table tb_post (
@@ -127,7 +131,7 @@ create table tb_reply (
     reply_time timestamp default current_timestamp,
     primary key (reply_id),
     foreign key (user_id) references tb_user (user_id),
-    foreign key (post_id) references tb_post (post_id)
+    foreign key (post_id) references tb_post (post_id) ON delete cascade
 	);
 ALTER TABLE tb_reply AUTO_INCREMENT = 500;
 

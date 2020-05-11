@@ -54,6 +54,25 @@
             {% endfor %}
         {% endif %}
         <hr>
+         <h2>Post History</h2>
+        <div class="main" style="padding: 0; background-color: #e2e1e8; margin: 0">
+    {% for post in post_history %}
+       <ul>
+            <li>
+                <div class="post-group">
+                    <p class="post-title"><a href="{{ url_for('into_reply', post_id=post.post_id) }}">
+                        {{ post.post_title }}</a></p>
+                    <P class="post-content">{{ post.post_content }}</P>
+                    <div class="post-info">
+                        <span class="post-author">{{ post.user_name }}</span>
+                        <span class="post-time">{{ post.post_time }}</span>
+                    </div>
+                </div>
+            </li>
+       </ul>
+    {% endfor %}
+    </div>
+
 
     {% else %}
         <h2>My Profile</h2>
@@ -236,11 +255,8 @@
         </tr>
         </table>
 
-{% endif %}
-
-
-
-         <h2>Post History</h2>
+        <hr>
+        <h2>Post History</h2>
         <div class="main" style="padding: 0; background-color: #e2e1e8; margin: 0">
     {% for post in post_history %}
        <ul>
@@ -250,7 +266,9 @@
                         {{ post.post_title }}</a></p>
                     <P class="post-content">{{ post.post_content }}</P>
                     <div class="post-info">
-                        <span class="post-author">{{ post.user_name }}</a></span>
+                        <span class="post-author">{{ post.user_name }}</span>
+                        <span class="delete" style="margin: 20px;">
+                            <a href="{{ url_for('delete_post', post_id=post.post_id) }}">Delete</a></span>
                         <span class="post-time">{{ post.post_time }}</span>
                     </div>
                 </div>
@@ -258,6 +276,9 @@
        </ul>
     {% endfor %}
     </div>
+
+{% endif %}
+
 </div>
 
 
