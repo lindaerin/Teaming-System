@@ -109,6 +109,7 @@ create table tb_user_taboo (
     foreign key (user_id) references tb_user (user_id)
 );
 
+
 -- create table post
 create table tb_post (
 	post_id int auto_increment,
