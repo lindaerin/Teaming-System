@@ -6,4 +6,4 @@ Download the source code and run main.py
 
 Project Preview
 
-https://github.com/lindaerin/Teaming-System/blob/master/Reports%20%26%20Diagrams/profile-preview.png
+https://github.com/lindaerin/Teaming-System/blob/master/Reports/Diagrams/profile-preview.png
