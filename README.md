@@ -1,4 +1,4 @@
-# csc322
+# Teaming System
 Software Engineering Class Project in Python using the web frame work Flask 
 
 
